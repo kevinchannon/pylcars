@@ -128,8 +128,9 @@ class Widgets:
         # Try to set the requested font
         self.default_font.setFamily(fontname)
 
-        # Check if the font is available (exactMatch tests if the exact font is available)
-        if not self.default_font.exactMatch() and fontname == DEFAULT_FONT_NAME:
+        # QFont::exactMatch() always returns False on macOS/CoreText for application
+        # fonts loaded via addApplicationFont(); use QFontDatabase instead.
+        if fontname not in QtGui.QFontDatabase().families() and fontname == DEFAULT_FONT_NAME:
             # Font not available, use fallback
             self.default_font.setFamily(FALLBACK_FONT_NAME)
             if size is None:
