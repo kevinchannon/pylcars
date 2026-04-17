@@ -13,6 +13,8 @@ from ..conditions import Conditions
 from ..orientation import Orientation
 from .bracket import Bracket
 from .block import Block
+from .deco import Deco
+from .textline import Textline
 from functools import partial
 
 
@@ -120,7 +122,8 @@ class Menue:
         self.enabled = enabled
 
     def __init__(self, lcars: QtWidgets.QWidget, fields: List[str], rect: QtCore.QRect, button_size: QtCore.QSize, color_use: str = Conditions.use,
-                 color_active: str = Conditions.active, button_space: int = 4, button_callback: Optional[Callable[[str], None]] = None) -> None:
+                 color_active: str = Conditions.active, button_space: int = 4, button_callback: Optional[Callable[[str], None]] = None,
+                 header_text: Optional[str] = None) -> None:
         """Initialize a Menu widget.
 
         Creates a menu with buttons for each field and associated pages.
@@ -172,3 +175,29 @@ class Menue:
         bs: int = int(rh - bh / 2)
         self.linebot = Block(lcars, QtCore.QRect(lx, bs, lw, int(bh / 2)), Conditions.use)
         self.fill = Block(lcars, QtCore.QRect(rx, pos, bw, int(rh - bh - pos - button_space)), Conditions.use)
+
+        if header_text:
+            self._add_header(lcars, lx, lw, ry, bs, bh, color_use, header_text)
+
+    def _add_header(self, lcars: QtWidgets.QWidget, lx: int, lw: int, bar_top_y: int, bar_bot_y: int, bh: int, color: str, text: str) -> None:
+        bar_h: int = bh // 2
+        bar_right: int = lx + lw
+        cap_w: int = bar_h
+        r: float = bar_h / 2
+        cap_svg: str = (
+            f'<svg height="{bar_h}" width="{cap_w}">'
+            f'<rect x="0" y="0" width="{r}" height="{bar_h}" fill="{{c}}" />'
+            f'<circle cx="{r}" cy="{r}" r="{r}" fill="{{c}}" />'
+            f'</svg>'
+        )
+        Deco(lcars, QtCore.QRect(bar_right - cap_w, bar_top_y, cap_w, bar_h), color, svg=cap_svg)
+        Deco(lcars, QtCore.QRect(bar_right - cap_w, bar_bot_y, cap_w, bar_h), color, svg=cap_svg)
+
+        title_gap: int = 12
+        title_w: int = 72
+        gap_x: int = bar_right - cap_w - title_gap - title_w
+        gap_rect: QtCore.QRect = QtCore.QRect(gap_x, bar_top_y, title_w, bar_h)
+        Block(lcars, gap_rect, "#000000")
+        title = Textline(lcars, gap_rect, color, 18)
+        title.setText(text)
+        title.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter)

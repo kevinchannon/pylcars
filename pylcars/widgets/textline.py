@@ -6,7 +6,7 @@ custom colors, font sizes, and letter spacing for consistent LCARS typography.
 from typing import Optional, Union
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from pylcars import Deco
+from .deco import Deco
 
 
 class Textline(Deco):
