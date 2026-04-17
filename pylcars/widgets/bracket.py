@@ -20,7 +20,7 @@ class Bracket(Widgets, QtWidgets.QPushButton):
         style: Stylesheet for the button.
         color: Color of the button background.
     """
-    default_style: str = "border: none;\nbackground: {bg};\nText-align: center;\npadding: 4px;"
+    default_style: str = "border: none;\nbackground: {bg};\nText-align: right;\npadding: 4px;"
 
     def __init__(self, lcars: QtWidgets.QWidget, rect: QtCore.QRect, text: str, color: str, style: Optional[str] = None, svg: Optional[str] = None) -> None:
         """Initialize a Bracket button widget.
