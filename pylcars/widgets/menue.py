@@ -221,7 +221,7 @@ class Menue:
         title.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter)
 
         if footer_text is not None:
-            footer_w: int = 150
+            footer_w: int = QtGui.QFontMetrics(QtGui.QFont("LCARS", 18)).horizontalAdvance(footer_text) + 6
             footer_gap_x: int = bar_right - cap_w - title_gap - footer_w
             footer_rect: QtCore.QRect = QtCore.QRect(footer_gap_x, bar_bot_y, footer_w, bar_h)
             Block(lcars, footer_rect, "#000000")
