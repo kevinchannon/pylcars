@@ -167,7 +167,7 @@ class Menue:
         self.buttons = {}
         self.pages = {}
         self.fields = fields
-        pos = bh + button_space
+        pos = ry + bh + button_space
         self.button_callback = button_callback if button_callback else self.menu_click
         for button in self.fields:
             self.buttons[button] = Bracket(lcars, QtCore.QRect(rx, pos, bw, bh), button + " ", color_use)
@@ -176,17 +176,17 @@ class Menue:
             self.pages[button] = {}
         self.active_page = fields[0]
         self.buttons[self.active_page].tockle(Conditions.active)
-        self.bot = Separator(lcars, QtCore.QRect(rx, rh - bh, seperator_width, bh), color_use, bw,
+        self.bot = Separator(lcars, QtCore.QRect(rx, ry + rh - bh, seperator_width, bh), color_use, bw,
                              orientation=Orientation.bottom)
         lx: int = rx + seperator_width + button_space
         lw: int = rw - lx
-        display_y: int = bh + button_space
-        self._display_rect = QtCore.QRect(lx, display_y, lw, rh - bh - display_y)
+        display_y: int = ry + bh + button_space
+        self._display_rect = QtCore.QRect(lx, display_y, lw, rh - bh - (display_y - ry))
 
         self.linetop = Block(lcars, QtCore.QRect(lx, ry, lw, int(bh / 2)), Conditions.use)
-        bs: int = int(rh - bh / 2)
+        bs: int = ry + int(rh - bh / 2)
         self.linebot = Block(lcars, QtCore.QRect(lx, bs, lw, int(bh / 2)), Conditions.use)
-        self.fill = Block(lcars, QtCore.QRect(rx, pos, bw, int(rh - bh - pos - button_space)), Conditions.use)
+        self.fill = Block(lcars, QtCore.QRect(rx, pos, bw, int(ry + rh - bh - pos - button_space)), Conditions.use)
 
         if header_text:
             self._add_header(lcars, lx, lw, ry, bs, bh, color_use, header_text)
