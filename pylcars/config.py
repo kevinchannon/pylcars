@@ -20,7 +20,7 @@ SHUTDOWN_SEQUENCE_MS: int = 3000
 # Note: LCARS font needs to be installed separately
 # If not available, falls back to system fonts
 DEFAULT_FONT_NAME: str = "LCARS"
-DEFAULT_FONT_SIZE: int = 24
+DEFAULT_FONT_SIZE: int = 20
 FALLBACK_FONT_NAME: str = "Courier"  # Fallback if LCARS unavailable
 FALLBACK_FONT_SIZE: int = 18  # Smaller fallback size to match original look
 
