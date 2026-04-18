@@ -185,7 +185,7 @@ class Menue:
         self.bot = Separator(lcars, QtCore.QRect(rx, ry + rh - bh, seperator_width, bh), color_use, bw,
                              orientation=Orientation.bottom)
         lx: int = rx + seperator_width + button_space
-        lw: int = rw - lx
+        lw: int = rx + rw - lx
         display_y: int = ry + bh + button_space
         self._display_rect = QtCore.QRect(lx, display_y, lw - bh // 2, rh - bh - (display_y - ry))
 

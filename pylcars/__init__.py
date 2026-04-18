@@ -24,6 +24,7 @@ from .widgets.block import Block
 from .widgets.separator import Separator
 from .widgets.bracket import Bracket
 from .widgets.menue import Menue
+from .widgets.c_style_frame import CStyleFrame
 from .widgets.updown import Updown
 from .widgets.layout_grid import LayoutGrid
 from .widgets.slider import Slider
@@ -42,6 +43,7 @@ __all__ = [
     "Separator",
     "Bracket",
     "Menue",
+    "CStyleFrame",
     "Updown",
     "LayoutGrid",
     "Slider",
