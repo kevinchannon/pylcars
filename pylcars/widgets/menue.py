@@ -181,7 +181,7 @@ class Menue:
         lx: int = rx + seperator_width + button_space
         lw: int = rw - lx
         display_y: int = ry + bh + button_space
-        self._display_rect = QtCore.QRect(lx, display_y, lw, rh - bh - (display_y - ry))
+        self._display_rect = QtCore.QRect(lx, display_y, lw - bh // 2, rh - bh - (display_y - ry))
 
         self.linetop = Block(lcars, QtCore.QRect(lx, ry, lw, int(bh / 2)), Conditions.use)
         bs: int = ry + int(rh - bh / 2)
