@@ -55,6 +55,16 @@ class Menue:
     fill: Block
     active_page: str
     button_callback: Callable[[str], None]
+    _display_rect: QtCore.QRect
+
+    def display_rect(self) -> QtCore.QRect:
+        """Return the available content area as a QRect.
+
+        The rectangle spans from just below the top button row to just above
+        the bottom corner swish, and from the right edge of the button strip
+        to the right edge of the widget.
+        """
+        return self._display_rect
 
     def menu_click(self, button_name: str = "\n") -> None:
         """Handle menu button click and page switching.
@@ -170,6 +180,8 @@ class Menue:
                              orientation=Orientation.bottom)
         lx: int = rx + seperator_width + button_space
         lw: int = rw - lx
+        display_y: int = bh + button_space
+        self._display_rect = QtCore.QRect(lx, display_y, lw, rh - bh - display_y)
 
         self.linetop = Block(lcars, QtCore.QRect(lx, ry, lw, int(bh / 2)), Conditions.use)
         bs: int = int(rh - bh / 2)
