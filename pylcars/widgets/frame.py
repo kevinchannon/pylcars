@@ -414,7 +414,7 @@ class Frame:
         align_left: bool = False,
     ) -> Textline:
         """Text label cut into a bar, anchored near the left or right end."""
-        font_size = max(8, int(t * 1.3))
+        font_size = max(8, int(t * 1.3) - 2)
         gap = 12
         text_w = (
             QtGui.QFontMetrics(QtGui.QFont("LCARS", font_size)).horizontalAdvance(text)
