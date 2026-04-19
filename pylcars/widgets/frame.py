@@ -266,20 +266,21 @@ class Frame:
     ) -> None:
         """Build one sidebar's corner pieces and fill block."""
         sx = ix if side == 'left' else ix + iw - T
+        btn_x = ix if side == 'left' else ix + iw - bw
 
         # Top corner: swish into the horizontal bar, or plain rect if no top bar
         if has_top:
             svg = self._corner_svg(T, bh, t, bar, top=True, left=(side == 'left'))
             self._chrome.append(Deco(lcars, QtCore.QRect(sx, iy, T, bh), color, svg=svg))
         else:
-            self._chrome.append(Block(lcars, QtCore.QRect(sx, iy, T, bh), color))
+            self._chrome.append(Block(lcars, QtCore.QRect(btn_x, iy, bw, bh), color))
 
         # Bottom corner: swish into the horizontal bar, or plain rect if no bottom bar
         if has_bot:
             svg = self._corner_svg(T, bh, t, bar, top=False, left=(side == 'left'))
             self._chrome.append(Deco(lcars, QtCore.QRect(sx, iy + ih - bh, T, bh), color, svg=svg))
         else:
-            self._chrome.append(Block(lcars, QtCore.QRect(sx, iy + ih - bh, T, bh), color))
+            self._chrome.append(Block(lcars, QtCore.QRect(btn_x, iy + ih - bh, bw, bh), color))
 
     def _place_buttons(
         self,
