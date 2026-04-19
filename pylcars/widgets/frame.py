@@ -401,7 +401,7 @@ class Frame:
         text: str,
     ) -> Textline:
         """Text label cut into a bar, positioned near the right end."""
-        font_size = max(8, int(t * 0.85))
+        font_size = max(8, int(t))
         gap = 12
         text_w = (
             QtGui.QFontMetrics(QtGui.QFont("LCARS", font_size)).horizontalAdvance(text)
