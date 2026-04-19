@@ -175,6 +175,13 @@ class Frame:
         bar_right_x = ix + iw - (T + bs if has_right else 0)
         bar_w = bar_right_x - bar_left
 
+        align_left = has_right and not has_left
+        text_x_anchor = (
+            bar_left + (t if not has_left else 0)
+            if align_left
+            else bar_right_x - (t if not has_right else 0)
+        )
+
         if has_top:
             top_bar = Block(lcars, QtCore.QRect(bar_left, iy, bar_w, t), color)
             self._chrome.append(top_bar)
@@ -184,7 +191,7 @@ class Frame:
                 self._chrome.append(self._make_cap(lcars, bar_right_x - t, iy, t, color, side='right'))
             if header_text is not None:
                 self._header_label = self._add_text(
-                    lcars, bar_right_x - (t if not has_right else 0), iy, t, color, header_text,
+                    lcars, text_x_anchor, iy, t, color, header_text, align_left=align_left,
                 )
 
         if has_bot:
@@ -197,13 +204,13 @@ class Frame:
                 self._chrome.append(self._make_cap(lcars, bar_right_x - t, bot_y, t, color, side='right'))
             if footer_text is not None:
                 self._footer_label = self._add_text(
-                    lcars, bar_right_x - (t if not has_right else 0), bot_y, t, color, footer_text,
+                    lcars, text_x_anchor, bot_y, t, color, footer_text, align_left=align_left,
                 )
 
         # ── Display rect ──────────────────────────────────────────────────
         if has_left or has_right:
-            display_y = iy + bh + bs
-            display_bot = iy + ih - bh
+            display_y = iy + (bh + bs if has_top else 0)
+            display_bot = iy + ih - (bh if has_bot else 0)
         elif has_top:
             display_y = iy + t + bs
             display_bot = iy + ih - (t if has_bot else 0)
@@ -233,10 +240,12 @@ class Frame:
         self._place_buttons(
             lcars, ix, iy, iw, ih, bh, bw, bs,
             left_upper_buttons, left_lower_buttons, side='left', has_sidebar=has_left,
+            has_top=has_top, has_bot=has_bot,
         )
         self._place_buttons(
             lcars, ix, iy, iw, ih, bh, bw, bs,
             right_upper_buttons, right_lower_buttons, side='right', has_sidebar=has_right,
+            has_top=has_top, has_bot=has_bot,
         )
 
         if self.fields:
@@ -260,19 +269,15 @@ class Frame:
         """Build one sidebar's corner pieces and fill block."""
         sx = ix if side == 'left' else ix + iw - T
 
-        # Top corner: swish if there's a top bar, flat block otherwise
+        # Top corner: swish into the horizontal bar; nothing when no top bar
         if has_top:
             svg = self._corner_svg(T, bh, t, bar, top=True, left=(side == 'left'))
             self._chrome.append(Deco(lcars, QtCore.QRect(sx, iy, T, bh), color, svg=svg))
-        else:
-            self._chrome.append(Block(lcars, QtCore.QRect(sx, iy, bw if side == 'left' else bw, bh), color))
 
-        # Bottom corner
+        # Bottom corner: swish into the horizontal bar; nothing when no bottom bar
         if has_bot:
             svg = self._corner_svg(T, bh, t, bar, top=False, left=(side == 'left'))
             self._chrome.append(Deco(lcars, QtCore.QRect(sx, iy + ih - bh, T, bh), color, svg=svg))
-        else:
-            self._chrome.append(Block(lcars, QtCore.QRect(sx, iy + ih - bh, bw, bh), color))
 
     def _place_buttons(
         self,
@@ -283,14 +288,16 @@ class Frame:
         lower: List[str],
         side: str,
         has_sidebar: bool = True,
+        has_top: bool = True,
+        has_bot: bool = True,
     ) -> None:
         """Create and register buttons for one sidebar."""
         if not upper and not lower and not has_sidebar:
             return
         btn_x = ix if side == 'left' else ix + iw - bw
 
-        # Upper group
-        pos_y = iy + bh + bs
+        # Upper group — start below top corner when present, else at frame top
+        pos_y = iy + (bh + bs if has_top else 0)
         for name in upper:
             self.buttons[name] = Bracket(
                 lcars, QtCore.QRect(btn_x, pos_y, bw, bh), name + " ", self.color,
@@ -303,10 +310,10 @@ class Frame:
             pos_y += bh + bs
         upper_end_y = pos_y
 
-        # Lower group (packed against bottom corner)
+        # Lower group — packed above bottom corner when present, else at frame bottom
         n_lower = len(lower)
         lower_gap = n_lower * (bh + bs) if n_lower > 0 else bs
-        lower_start_y = iy + ih - bh - lower_gap
+        lower_start_y = iy + ih - (bh if has_bot else 0) - lower_gap
         for i, name in enumerate(lower):
             btn_y = lower_start_y + i * (bh + bs)
             self.buttons[name] = Bracket(
@@ -397,20 +404,21 @@ class Frame:
     @staticmethod
     def _add_text(
         lcars: QtWidgets.QWidget,
-        bar_right: int,
+        x_anchor: int,
         y: int,
         t: int,
         color: str,
         text: str,
+        align_left: bool = False,
     ) -> Textline:
-        """Text label cut into a bar, positioned near the right end."""
-        font_size = max(8, int(t * 1.25))
+        """Text label cut into a bar, anchored near the left or right end."""
+        font_size = max(8, int(t * 0.85))
         gap = 12
         text_w = (
             QtGui.QFontMetrics(QtGui.QFont("LCARS", font_size)).horizontalAdvance(text)
             + 16
         )
-        text_x = bar_right - gap - text_w
+        text_x = (x_anchor + gap) if align_left else (x_anchor - gap - text_w)
         text_rect = QtCore.QRect(text_x, y, text_w, t)
         Block(lcars, text_rect, "#000000")
         label = Textline(lcars, text_rect, color, font_size)
