@@ -218,8 +218,9 @@ class Frame:
             display_y = iy
             display_bot = iy + ih - (t if has_bot else 0)
 
-        display_x = ix + (T + bs if has_left else 0)
-        display_right = ix + iw - (T + bs if has_right else (t if not has_right else 0))
+        has_any_bar = has_top or has_bot
+        display_x = ix + (T + bs if has_left else (t if has_any_bar else 0))
+        display_right = ix + iw - (T + bs if has_right else (t if has_any_bar else 0))
 
         self._display_rect = QtCore.QRect(
             display_x,
