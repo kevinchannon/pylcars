@@ -208,9 +208,10 @@ class Frame:
                 )
 
         # ── Display rect ──────────────────────────────────────────────────
+        has_any_bar = has_top or has_bot
         if has_left or has_right:
-            display_y = iy + (bh + bs if has_top else 0)
-            display_bot = iy + ih - (bh if has_bot else 0)
+            display_y = iy + (bh + bs if has_any_bar else 0)
+            display_bot = iy + ih - (bh if has_any_bar else 0)
         elif has_top:
             display_y = iy + t + bs
             display_bot = iy + ih - (t if has_bot else 0)
@@ -218,7 +219,6 @@ class Frame:
             display_y = iy
             display_bot = iy + ih - (t if has_bot else 0)
 
-        has_any_bar = has_top or has_bot
         display_x = ix + (T + bs if has_left else (t if has_any_bar else 0))
         display_right = ix + iw - (T + bs if has_right else (t if has_any_bar else 0))
 
