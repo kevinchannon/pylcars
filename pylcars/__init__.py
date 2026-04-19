@@ -25,6 +25,7 @@ from .widgets.separator import Separator
 from .widgets.bracket import Bracket
 from .widgets.menue import Menue
 from .widgets.frame import Frame
+from .widgets.s_frame import SFrame
 from .frame_border import FrameBorder
 from .widgets.updown import Updown
 from .widgets.layout_grid import LayoutGrid
@@ -45,6 +46,7 @@ __all__ = [
     "Bracket",
     "Menue",
     "Frame",
+    "SFrame",
     "FrameBorder",
     "Updown",
     "LayoutGrid",
