@@ -232,11 +232,11 @@ class Frame:
 
         self._place_buttons(
             lcars, ix, iy, iw, ih, bh, bw, bs,
-            left_upper_buttons, left_lower_buttons, side='left',
+            left_upper_buttons, left_lower_buttons, side='left', has_sidebar=has_left,
         )
         self._place_buttons(
             lcars, ix, iy, iw, ih, bh, bw, bs,
-            right_upper_buttons, right_lower_buttons, side='right',
+            right_upper_buttons, right_lower_buttons, side='right', has_sidebar=has_right,
         )
 
         if self.fields:
@@ -282,8 +282,11 @@ class Frame:
         upper: List[str],
         lower: List[str],
         side: str,
+        has_sidebar: bool = True,
     ) -> None:
         """Create and register buttons for one sidebar."""
+        if not upper and not lower and not has_sidebar:
+            return
         btn_x = ix if side == 'left' else ix + iw - bw
 
         # Upper group
@@ -317,7 +320,7 @@ class Frame:
 
         # Fill between groups
         fill_h = lower_start_y - upper_end_y
-        if fill_h > 0:
+        if fill_h > 0 and has_sidebar:
             fill_x = ix if side == 'left' else ix + iw - bw
             fill = Block(lcars, QtCore.QRect(fill_x, upper_end_y, bw, fill_h), self.color)
             self._chrome.append(fill)
