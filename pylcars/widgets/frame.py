@@ -209,8 +209,8 @@ class Frame:
 
         # ── Display rect ──────────────────────────────────────────────────
         if has_left or has_right:
-            display_y = iy + (bh + bs if has_top else 0)
-            display_bot = iy + ih - (bh if has_bot else 0)
+            display_y = iy + bh + bs
+            display_bot = iy + ih - bh
         elif has_top:
             display_y = iy + t + bs
             display_bot = iy + ih - (t if has_bot else 0)
@@ -240,12 +240,10 @@ class Frame:
         self._place_buttons(
             lcars, ix, iy, iw, ih, bh, bw, bs,
             left_upper_buttons, left_lower_buttons, side='left', has_sidebar=has_left,
-            has_top=has_top, has_bot=has_bot,
         )
         self._place_buttons(
             lcars, ix, iy, iw, ih, bh, bw, bs,
             right_upper_buttons, right_lower_buttons, side='right', has_sidebar=has_right,
-            has_top=has_top, has_bot=has_bot,
         )
 
         if self.fields:
@@ -269,15 +267,19 @@ class Frame:
         """Build one sidebar's corner pieces and fill block."""
         sx = ix if side == 'left' else ix + iw - T
 
-        # Top corner: swish into the horizontal bar; nothing when no top bar
+        # Top corner: swish into the horizontal bar, or plain rect if no top bar
         if has_top:
             svg = self._corner_svg(T, bh, t, bar, top=True, left=(side == 'left'))
             self._chrome.append(Deco(lcars, QtCore.QRect(sx, iy, T, bh), color, svg=svg))
+        else:
+            self._chrome.append(Block(lcars, QtCore.QRect(sx, iy, T, bh), color))
 
-        # Bottom corner: swish into the horizontal bar; nothing when no bottom bar
+        # Bottom corner: swish into the horizontal bar, or plain rect if no bottom bar
         if has_bot:
             svg = self._corner_svg(T, bh, t, bar, top=False, left=(side == 'left'))
             self._chrome.append(Deco(lcars, QtCore.QRect(sx, iy + ih - bh, T, bh), color, svg=svg))
+        else:
+            self._chrome.append(Block(lcars, QtCore.QRect(sx, iy + ih - bh, T, bh), color))
 
     def _place_buttons(
         self,
@@ -288,16 +290,14 @@ class Frame:
         lower: List[str],
         side: str,
         has_sidebar: bool = True,
-        has_top: bool = True,
-        has_bot: bool = True,
     ) -> None:
         """Create and register buttons for one sidebar."""
         if not upper and not lower and not has_sidebar:
             return
         btn_x = ix if side == 'left' else ix + iw - bw
 
-        # Upper group — start below top corner when present, else at frame top
-        pos_y = iy + (bh + bs if has_top else 0)
+        # Upper group — start below the top corner block (swish or plain rect)
+        pos_y = iy + bh + bs
         for name in upper:
             self.buttons[name] = Bracket(
                 lcars, QtCore.QRect(btn_x, pos_y, bw, bh), name + " ", self.color,
@@ -310,10 +310,10 @@ class Frame:
             pos_y += bh + bs
         upper_end_y = pos_y
 
-        # Lower group — packed above bottom corner when present, else at frame bottom
+        # Lower group — packed above the bottom corner block (swish or plain rect)
         n_lower = len(lower)
         lower_gap = n_lower * (bh + bs) if n_lower > 0 else bs
-        lower_start_y = iy + ih - (bh if has_bot else 0) - lower_gap
+        lower_start_y = iy + ih - bh - lower_gap
         for i, name in enumerate(lower):
             btn_y = lower_start_y + i * (bh + bs)
             self.buttons[name] = Bracket(
