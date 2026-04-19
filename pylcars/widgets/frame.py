@@ -416,10 +416,9 @@ class Frame:
         """Text label cut into a bar, anchored near the left or right end."""
         font_size = max(8, int(t * 1.3) - 2)
         gap = 12
-        text_w = (
-            QtGui.QFontMetrics(QtGui.QFont("LCARS", font_size)).horizontalAdvance(text)
-            + 16
-        )
+        _font = QtGui.QFont("LCARS", font_size)
+        _font.setLetterSpacing(QtGui.QFont.AbsoluteSpacing, 1)
+        text_w = QtGui.QFontMetrics(_font).horizontalAdvance(text) + 16
         text_x = (x_anchor + gap) if align_left else (x_anchor - gap - text_w)
         text_rect = QtCore.QRect(text_x, y, text_w, t)
         Block(lcars, text_rect, "#000000")
