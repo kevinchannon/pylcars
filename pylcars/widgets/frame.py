@@ -184,7 +184,7 @@ class Frame:
                 self._chrome.append(self._make_cap(lcars, bar_right_x - t, iy, t, color, side='right'))
             if header_text is not None:
                 self._header_label = self._add_text(
-                    lcars, bar_right_x, iy, t, color, header_text,
+                    lcars, bar_right_x - (t if not has_right else 0), iy, t, color, header_text,
                 )
 
         if has_bot:
@@ -197,7 +197,7 @@ class Frame:
                 self._chrome.append(self._make_cap(lcars, bar_right_x - t, bot_y, t, color, side='right'))
             if footer_text is not None:
                 self._footer_label = self._add_text(
-                    lcars, bar_right_x, bot_y, t, color, footer_text,
+                    lcars, bar_right_x - (t if not has_right else 0), bot_y, t, color, footer_text,
                 )
 
         # ── Display rect ──────────────────────────────────────────────────
@@ -284,9 +284,6 @@ class Frame:
         side: str,
     ) -> None:
         """Create and register buttons for one sidebar."""
-        if not upper and not lower:
-            return
-
         btn_x = ix if side == 'left' else ix + iw - bw
 
         # Upper group
@@ -404,7 +401,7 @@ class Frame:
         text: str,
     ) -> Textline:
         """Text label cut into a bar, positioned near the right end."""
-        font_size = 24
+        font_size = max(8, int(t * 0.85))
         gap = 12
         text_w = (
             QtGui.QFontMetrics(QtGui.QFont("LCARS", font_size)).horizontalAdvance(text)
