@@ -10,7 +10,8 @@ from PyQt5 import QtCore, QtGui, QtSvg, QtWidgets
 import os
 import xxhash
 import os.path
-from ..config import TICKLE_DURATION_MS, DEFAULT_FONT_NAME, DEFAULT_FONT_SIZE, FALLBACK_FONT_NAME, FALLBACK_FONT_SIZE
+from .. import config
+from ..config import TICKLE_DURATION_MS, DEFAULT_FONT_SIZE, FALLBACK_FONT_NAME, FALLBACK_FONT_SIZE
 
 # Global flag to track if fallback font warning has been shown
 _FALLBACK_FONT_WARNING_SHOWN = False
@@ -59,7 +60,7 @@ class Widgets:
         self.toggle = False
         self.lcars = lcars
         self.default_font = QtGui.QFont()
-        self.default_font_name = DEFAULT_FONT_NAME
+        self.default_font_name = config.DEFAULT_FONT_NAME
         self.set_default_font()
         self.image_folder = "background"
         self.background_col = "#000"
@@ -130,7 +131,7 @@ class Widgets:
 
         # QFont::exactMatch() always returns False on macOS/CoreText for application
         # fonts loaded via addApplicationFont(); use QFontDatabase instead.
-        if fontname not in QtGui.QFontDatabase().families() and fontname == DEFAULT_FONT_NAME:
+        if fontname not in QtGui.QFontDatabase().families() and fontname == config.DEFAULT_FONT_NAME:
             # Font not available, use fallback
             self.default_font.setFamily(FALLBACK_FONT_NAME)
             if size is None:
@@ -139,7 +140,7 @@ class Widgets:
             # Show warning only once
             if not _FALLBACK_FONT_WARNING_SHOWN:
                 print("\n" + "=" * 75)
-                print("⚠️  WARNING: LCARS font not found!")
+                print(f"⚠️  WARNING: '{config.DEFAULT_FONT_NAME}' font not found!")
                 print("=" * 75)
                 print(f"The '{DEFAULT_FONT_NAME}' font is not installed on this system.")
                 print(f"Using fallback '{FALLBACK_FONT_NAME}' font at {FALLBACK_FONT_SIZE}pt instead.")

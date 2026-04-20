@@ -10,6 +10,7 @@ from .bracket import Bracket
 from .deco import Deco
 from .textline import Textline
 from ..conditions import Conditions
+from .. import config
 from .frame import Frame
 
 
@@ -204,7 +205,7 @@ class SFrame:
         self._chrome.append(Block(lcars, QtCore.QRect(mb_x, mid_y, mb_w, t), color))
         if title:
             font_size = max(8, int(t * 1.3) - 2)
-            _font = QtGui.QFont("LCARS", font_size)
+            _font = QtGui.QFont(config.DEFAULT_FONT_NAME, font_size)
             _font.setLetterSpacing(QtGui.QFont.AbsoluteSpacing, 1)
             text_w = QtGui.QFontMetrics(_font).horizontalAdvance(title) + 16
             text_rect = QtCore.QRect(mb_x + mb_w - text_w, mid_y, text_w, t)

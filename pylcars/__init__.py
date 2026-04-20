@@ -32,6 +32,17 @@ from .widgets.layout_grid import LayoutGrid
 from .widgets.slider import Slider
 from .widgets.textline import Textline
 from .sound import Sound
+from . import config
+
+
+def set_font(name: str) -> None:
+    """Override the default font used by all pylcars widgets.
+
+    Call this before creating any widgets, after loading the font with
+    QFontDatabase.addApplicationFont().
+    """
+    config.DEFAULT_FONT_NAME = name
+
 
 __all__ = [
     "Lcars",
@@ -53,4 +64,6 @@ __all__ = [
     "Slider",
     "Textline",
     "Sound",
+    "set_font",
+    "config",
 ]

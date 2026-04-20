@@ -3,6 +3,7 @@ from typing import Optional
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from ..colors import Colors
+from .. import config
 from .block import Block
 from .deco import Deco
 from .textline import Textline
@@ -64,7 +65,7 @@ class LayoutGrid:
         Deco(lcars, QtCore.QRect(rect.x(), rect.y(), cap_w, bar_h), color, svg=left_cap_svg)
 
         title_gap = 12
-        cutout_w = QtGui.QFontMetrics(QtGui.QFont("LCARS", self.TITLE_FONT_SIZE)).horizontalAdvance(title) + 16
+        cutout_w = QtGui.QFontMetrics(QtGui.QFont(config.DEFAULT_FONT_NAME, self.TITLE_FONT_SIZE)).horizontalAdvance(title) + 16
         cutout_x = cap_x - title_gap - cutout_w
         cutout_rect = QtCore.QRect(cutout_x, rect.y(), cutout_w, bar_h)
         Block(lcars, cutout_rect, "#000000")

@@ -11,6 +11,7 @@ from .deco import Deco
 from .separator import Separator
 from .textline import Textline
 from ..conditions import Conditions
+from .. import config
 from ..frame_border import FrameBorder
 from ..orientation import Orientation
 
@@ -416,7 +417,7 @@ class Frame:
         """Text label cut into a bar, anchored near the left or right end."""
         font_size = max(8, int(t * 1.3) - 2)
         gap = 12
-        _font = QtGui.QFont("LCARS", font_size)
+        _font = QtGui.QFont(config.DEFAULT_FONT_NAME, font_size)
         _font.setLetterSpacing(QtGui.QFont.AbsoluteSpacing, 1)
         text_w = QtGui.QFontMetrics(_font).horizontalAdvance(text) + 16
         text_x = (x_anchor + gap) if align_left else (x_anchor - gap - text_w)

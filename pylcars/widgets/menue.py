@@ -10,6 +10,7 @@ from typing import Any, Callable, Dict, List, Optional
 from PyQt5 import QtCore, QtGui, QtSvg, QtWidgets
 from .separator import Separator
 from ..conditions import Conditions
+from .. import config
 from ..orientation import Orientation
 from .bracket import Bracket
 from .block import Block
@@ -221,7 +222,7 @@ class Menue:
         title.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter)
 
         if footer_text is not None:
-            footer_w: int = QtGui.QFontMetrics(QtGui.QFont("LCARS", 18)).horizontalAdvance(footer_text) + 16
+            footer_w: int = QtGui.QFontMetrics(QtGui.QFont(config.DEFAULT_FONT_NAME, 18)).horizontalAdvance(footer_text) + 16
             footer_gap_x: int = bar_right - cap_w - title_gap - footer_w
             footer_rect: QtCore.QRect = QtCore.QRect(footer_gap_x, bar_bot_y, footer_w, bar_h)
             Block(lcars, footer_rect, "#000000")
