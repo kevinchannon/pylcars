@@ -14,7 +14,7 @@ class LayoutGrid:
     COLS = 6
     ROWS = 6
     TITLE_BAR_HEIGHT = 30
-    TITLE_FONT_SIZE = points_for_height(TITLE_BAR_HEIGHT)
+    TITLE_FONT_SIZE = points_for_height(config.DEFAULT_FONT_NAME, TITLE_BAR_HEIGHT)
     PADDING = 5
 
     def __init__(
