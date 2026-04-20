@@ -21,11 +21,22 @@ from ..orientation import Orientation
 _px_to_pt: dict[str, tuple[float, float]] = {}
 
 
+def _cap_height(fm: QtGui.QFontMetrics) -> int:
+    """Visible capital-letter height: capHeight() with fallback to ascent()."""
+    h = fm.capHeight()
+    return h if h > 0 else fm.ascent()
+
+
 def _calibrate(family: str) -> None:
-    """Sample two point sizes and cache the linear px→pt coefficients."""
+    """Sample two point sizes and cache the linear px→pt coefficients.
+
+    Uses cap height (top of a capital letter to baseline) as the reference
+    metric so that the resulting point size fills the bar with visible glyphs,
+    not with invisible leading or descent space.
+    """
     pt_lo, pt_hi = 10, 30
-    h_lo = QtGui.QFontMetrics(QtGui.QFont(family, pt_lo)).height()
-    h_hi = QtGui.QFontMetrics(QtGui.QFont(family, pt_hi)).height()
+    h_lo = _cap_height(QtGui.QFontMetrics(QtGui.QFont(family, pt_lo)))
+    h_hi = _cap_height(QtGui.QFontMetrics(QtGui.QFont(family, pt_hi)))
     # pt = slope * px + offset  (inverse of the px(pt) line)
     slope = (pt_hi - pt_lo) / (h_hi - h_lo)
     offset = pt_lo - slope * h_lo
