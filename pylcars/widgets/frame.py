@@ -22,9 +22,7 @@ _px_to_pt: dict[str, tuple[float, float]] = {}
 
 
 def _cap_height(fm: QtGui.QFontMetrics) -> int:
-    """Visible capital-letter height: capHeight() with fallback to ascent()."""
-    h = fm.capHeight()
-    return h if h > 0 else fm.ascent()
+    return fm.tightBoundingRect("X").height()
 
 
 def _calibrate(family: str) -> None:
