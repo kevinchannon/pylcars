@@ -14,7 +14,7 @@ class LayoutGrid:
     COLS = 6
     ROWS = 6
     TITLE_BAR_HEIGHT = 30
-    TITLE_FONT_SIZE = points_for_height(config.DEFAULT_FONT_NAME, TITLE_BAR_HEIGHT)
+    TITLE_FONT_SIZE = 36
     PADDING = 5
 
     def __init__(
@@ -66,6 +66,7 @@ class LayoutGrid:
         Deco(lcars, QtCore.QRect(rect.x(), rect.y(), cap_w, bar_h), color, svg=left_cap_svg)
 
         title_gap = 12
+        self.TITLE_FONT_SIZE = points_for_height(config.DEFAULT_FONT_NAME, self.TITLE_BAR_HEIGHT)
         cutout_w = QtGui.QFontMetrics(QtGui.QFont(config.DEFAULT_FONT_NAME, self.TITLE_FONT_SIZE)).horizontalAdvance(title) + 16
         cutout_x = cap_x - title_gap - cutout_w
         cutout_rect = QtCore.QRect(cutout_x, rect.y(), cutout_w, bar_h)
