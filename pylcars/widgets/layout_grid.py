@@ -7,13 +7,14 @@ from .. import config
 from .block import Block
 from .deco import Deco
 from .textline import Textline
+from .frame import points_for_height
 
 
 class LayoutGrid:
     COLS = 6
     ROWS = 6
     TITLE_BAR_HEIGHT = 30
-    TITLE_FONT_SIZE = 36
+    TITLE_FONT_SIZE = points_for_height(TITLE_BAR_HEIGHT)
     PADDING = 5
 
     def __init__(
