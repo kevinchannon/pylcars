@@ -16,6 +16,33 @@ from ..frame_border import FrameBorder
 from ..orientation import Orientation
 
 
+# Per-family cache of (pt_per_px, intercept_pt) for the px→pt linear fit.
+# Populated once on first use of each font family.
+_px_to_pt: dict[str, tuple[float, float]] = {}
+
+
+def _calibrate(family: str) -> None:
+    """Sample two point sizes and cache the linear px→pt coefficients."""
+    pt_lo, pt_hi = 10, 30
+    h_lo = QtGui.QFontMetrics(QtGui.QFont(family, pt_lo)).height()
+    h_hi = QtGui.QFontMetrics(QtGui.QFont(family, pt_hi)).height()
+    # pt = slope * px + offset  (inverse of the px(pt) line)
+    slope = (pt_hi - pt_lo) / (h_hi - h_lo)
+    offset = pt_lo - slope * h_lo
+    _px_to_pt[family] = (slope, offset)
+
+
+def points_for_height(family: str, target_px: int) -> int:
+    """Return the point size whose rendered height best fits target_px.
+
+    Calibrates once per font family; subsequent calls are a multiply-add.
+    """
+    if family not in _px_to_pt:
+        _calibrate(family)
+    slope, offset = _px_to_pt[family]
+    return max(4, round(slope * target_px + offset))
+
+
 class Frame:
     """LCARS frame whose visible borders are selected via a set of FrameBorder values.
 
@@ -415,7 +442,7 @@ class Frame:
         align_left: bool = False,
     ) -> Textline:
         """Text label cut into a bar, anchored near the left or right end."""
-        font_size = max(8, int(t * 1.3) - 2)
+        font_size = points_for_height(config.DEFAULT_FONT_NAME, t)
         gap = 12
         _font = QtGui.QFont(config.DEFAULT_FONT_NAME, font_size)
         _font.setLetterSpacing(QtGui.QFont.AbsoluteSpacing, 1)
