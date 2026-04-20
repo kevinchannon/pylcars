@@ -2,6 +2,7 @@
 """Generic LCARS frame widget driven by a set of visible borders."""
 from functools import partial
 from typing import Any, Callable, Dict, List, Optional, Set
+from icecream import ic
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
@@ -131,9 +132,9 @@ class Frame:
         left_lower_buttons: Optional[List[str]] = None,
         right_upper_buttons: Optional[List[str]] = None,
         right_lower_buttons: Optional[List[str]] = None,
-        padding: int = 5,
+        padding: int = 4,
         thin_thickness: int = 20,
-        thick_thickness: int = 195,
+        thick_thickness: int = 200,
         button_spacing: int = 4,
         header_text: Optional[str] = None,
         footer_text: Optional[str] = None,
@@ -179,7 +180,10 @@ class Frame:
         has_left = FrameBorder.LEFT in borders
         has_right = FrameBorder.RIGHT in borders
 
-        t = thin_thickness
+        font_points = points_for_height(config.DEFAULT_FONT_NAME, thin_thickness)
+        ic(font_points)
+        t = QtGui.QFontMetrics(QtGui.QFont(config.DEFAULT_FONT_NAME, font_points)).tightBoundingRect("X").height()
+        ic(t)
         T = thick_thickness
         bh = 2 * t
         bw = int(T * 2 / 3)
@@ -452,16 +456,28 @@ class Frame:
     ) -> Textline:
         """Text label cut into a bar, anchored near the left or right end."""
         font_size = points_for_height(config.DEFAULT_FONT_NAME, t)
+        ic(font_size)
         gap = 12
         _font = QtGui.QFont(config.DEFAULT_FONT_NAME, font_size)
         _font.setLetterSpacing(QtGui.QFont.AbsoluteSpacing, 1)
-        text_w = QtGui.QFontMetrics(_font).horizontalAdvance(text) + 16
+        fm = QtGui.QFontMetrics(_font)
+        font_height = fm.tightBoundingRect("I").height()
+        ic()
+        text_w = fm.horizontalAdvance(text) + int(3 * fm.tightBoundingRect("I").width())
         text_x = (x_anchor + gap) if align_left else (x_anchor - gap - text_w)
-        text_rect = QtCore.QRect(text_x, y, text_w, t)
-        Block(lcars, text_rect, "#000000")
-        label = Textline(lcars, text_rect, color, font_size)
+        ic(text_x)
+        ic(text_w)
+        b = Block(lcars, QtCore.QRect(text_x, y, text_w, t), "#000000")
+        widget_h = fm.height()
+        ic(widget_h)
+        widget_y = max(0, y + t // 2 - font_height + font_height // 2)
+        # widget_y = y
+        ic(widget_y)
+        ic(b.rect)
+        label = Textline(lcars, b.rect, color, font_size)
+        label.setStyleSheet(f"background: transparent; color: {color}; border: none;")
         label.setText(text)
-        label.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter)
+        #abel.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter)
         Frame._unbold(label)
         return label
 

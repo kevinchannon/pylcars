@@ -113,9 +113,9 @@ class SFrame:
         title: Optional[str] = None,
         header_text: Optional[str] = None,
         footer_text: Optional[str] = None,
-        padding: int = 5,
+        padding: int = 4,
         thin_thickness: int = 20,
-        thick_thickness: int = 195,
+        thick_thickness: int = 200,
         button_spacing: int = 4,
         color: str = Conditions.use,
         color_active: str = Conditions.active,
@@ -207,10 +207,14 @@ class SFrame:
             font_size = points_for_height(config.DEFAULT_FONT_NAME, t)
             _font = QtGui.QFont(config.DEFAULT_FONT_NAME, font_size)
             _font.setLetterSpacing(QtGui.QFont.AbsoluteSpacing, 1)
-            text_w = QtGui.QFontMetrics(_font).horizontalAdvance(title) + 16
-            text_rect = QtCore.QRect(mb_x + mb_w - text_w, mid_y, text_w, t)
-            Block(lcars, text_rect, "#000000")
-            lbl = Textline(lcars, text_rect, color, font_size)
+            fm = QtGui.QFontMetrics(_font)
+            text_w = fm.horizontalAdvance(title) + int(2 * fm.tightBoundingRect("I").width())
+            text_x = mb_x + mb_w - text_w
+            Block(lcars, QtCore.QRect(text_x, mid_y, text_w, t), "#000000")
+            widget_h = fm.height()
+            widget_y = mid_y + t // 2 - fm.ascent() + fm.capHeight() // 2
+            lbl = Textline(lcars, QtCore.QRect(text_x, widget_y, text_w, widget_h), color, font_size)
+            lbl.setStyleSheet(f"background: transparent; color: {color}; border: none;")
             lbl.setText(title)
             lbl.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter)
             Frame._unbold(lbl)
