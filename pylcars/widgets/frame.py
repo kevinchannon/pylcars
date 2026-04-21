@@ -440,10 +440,10 @@ class Frame:
         font_height = fm.capHeight()
         text_w = fm.horizontalAdvance(text) + int(3 * fm.tightBoundingRect("I").width())
         text_x = (x_anchor + gap) if align_left else (x_anchor - gap - text_w)
-        b = Block(lcars, QtCore.QRect(text_x, y, text_w, t), "#000000")
+        Block(lcars, QtCore.QRect(text_x, y, text_w, t), "#000000")
         widget_h = fm.height()
-        widget_y = max(0, y + t // 2 - font_height + font_height // 2)
-        label = Textline(lcars, b.rect, color, font_size)
+        widget_y = y + t // 2 - fm.ascent() + fm.capHeight() // 2
+        label = Textline(lcars, QtCore.QRect(text_x, widget_y, text_w, widget_h), color, font_size)
         label.setStyleSheet(f"background: transparent; color: {color}; border: none;")
         label.setText(text)
         label.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter)
