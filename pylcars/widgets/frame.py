@@ -435,7 +435,6 @@ class Frame:
         font_size = points_for_height(config.DEFAULT_FONT_NAME, t)
         gap = 12
         _font = QtGui.QFont(config.DEFAULT_FONT_NAME, font_size)
-        _font.setLetterSpacing(QtGui.QFont.AbsoluteSpacing, 1)
         fm = QtGui.QFontMetrics(_font)
         font_height = fm.capHeight()
         text_w = fm.horizontalAdvance(text) + int(3 * fm.tightBoundingRect("I").width())
@@ -445,6 +444,7 @@ class Frame:
         widget_y = y + t // 2 - fm.ascent() + fm.capHeight() // 2
         label = Textline(lcars, QtCore.QRect(text_x, widget_y, text_w, widget_h), color, font_size)
         label.setStyleSheet(f"background: transparent; color: {color}; border: none;")
+        label.setFont(_font)
         label.setText(text)
         label.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter)
         Frame._unbold(label)

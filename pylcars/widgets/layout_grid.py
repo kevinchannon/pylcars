@@ -69,13 +69,14 @@ class LayoutGrid:
         self.TITLE_FONT_SIZE = points_for_height(config.DEFAULT_FONT_NAME, self.TITLE_BAR_HEIGHT)
         _font = QtGui.QFont(config.DEFAULT_FONT_NAME, self.TITLE_FONT_SIZE)
         fm = QtGui.QFontMetrics(_font)
-        cutout_w = fm.horizontalAdvance(title) + 16
+        cutout_w = fm.horizontalAdvance(title) + int(3 * fm.tightBoundingRect("I").width())
         cutout_x = cap_x - title_gap - cutout_w
         Block(lcars, QtCore.QRect(cutout_x, rect.y(), cutout_w, bar_h), "#000000")
         widget_h = fm.height()
         widget_y = rect.y() + bar_h // 2 - fm.ascent() + fm.capHeight() // 2
         label = Textline(lcars, QtCore.QRect(cutout_x, widget_y, cutout_w, widget_h), color, self.TITLE_FONT_SIZE)
         label.setStyleSheet(f"background: transparent; color: {color}; border: none;")
+        label.setFont(_font)
         label.setText(title)
         label.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter)
 
