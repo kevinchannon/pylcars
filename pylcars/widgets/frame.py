@@ -165,7 +165,7 @@ class Frame:
         font_points = points_for_height(config.DEFAULT_FONT_NAME, thin_thickness)
         t = QtGui.QFontMetrics(QtGui.QFont(config.DEFAULT_FONT_NAME, font_points)).capHeight()
         T = thick_thickness
-        bh = max(30, 2 * t)
+        bh = 2 * t
         bw = int(T * 2 / 3)
         bar = bw + t          # Separator internal bar_width value
         bs = button_spacing
@@ -323,8 +323,11 @@ class Frame:
         button_texts = button_texts or {}
         btn_x = ix if side == 'left' else ix + iw - bw
 
+        min_h = max(30, bh)
+
         def _btn_h(name: str) -> int:
-            return bh * (button_texts.get(name, name).count('\n') + 1)
+            n = button_texts.get(name, name).count('\n') + 1
+            return min_h * n
 
         # Upper group — start below the top corner block (swish or plain rect)
         pos_y = iy + bh + bs
@@ -360,8 +363,8 @@ class Frame:
             self.pages[name] = {}
             pos_y += btn_height + bs
 
-        # Fill between groups
-        fill_h = lower_start_y - upper_end_y
+        # Fill between groups — leave bs gap above lower button group when present
+        fill_h = lower_start_y - upper_end_y - (bs if lower else 0)
         if fill_h > 0 and has_sidebar:
             fill_x = ix if side == 'left' else ix + iw - bw
             fill = Block(lcars, QtCore.QRect(fill_x, upper_end_y, bw, fill_h), self.color)
