@@ -120,6 +120,7 @@ class Frame:
         color: str = Conditions.use,
         color_active: str = Conditions.active,
         button_callback: Optional[Callable[[str], None]] = None,
+        button_texts: Optional[Dict[str, str]] = None,
     ) -> None:
         """Initialise a Frame.
 
@@ -145,6 +146,8 @@ class Frame:
         left_lower_buttons = left_lower_buttons or []
         right_upper_buttons = right_upper_buttons or []
         right_lower_buttons = right_lower_buttons or []
+
+        button_texts = button_texts or {}
 
         self.lcars = lcars
         self.color = color
@@ -259,10 +262,12 @@ class Frame:
         self._place_buttons(
             lcars, ix, iy, iw, ih, bh, bw, bs,
             left_upper_buttons, left_lower_buttons, side='left', has_sidebar=has_left,
+            button_texts=button_texts,
         )
         self._place_buttons(
             lcars, ix, iy, iw, ih, bh, bw, bs,
             right_upper_buttons, right_lower_buttons, side='right', has_sidebar=has_right,
+            button_texts=button_texts,
         )
 
         if self.fields:
@@ -310,40 +315,50 @@ class Frame:
         lower: List[str],
         side: str,
         has_sidebar: bool = True,
+        button_texts: Optional[Dict[str, str]] = None,
     ) -> None:
         """Create and register buttons for one sidebar."""
         if not upper and not lower and not has_sidebar:
             return
+        button_texts = button_texts or {}
         btn_x = ix if side == 'left' else ix + iw - bw
+
+        def _btn_h(name: str) -> int:
+            return bh * (button_texts.get(name, name).count('\n') + 1)
 
         # Upper group — start below the top corner block (swish or plain rect)
         pos_y = iy + bh + bs
         for name in upper:
+            btn_height = _btn_h(name)
+            display_text = button_texts.get(name, name)
             self.buttons[name] = Bracket(
-                lcars, QtCore.QRect(btn_x, pos_y, bw, bh), name + " ", self.color,
+                lcars, QtCore.QRect(btn_x, pos_y, bw, btn_height), display_text + " ", self.color,
             )
             self.buttons[name].clicked.connect(
                 partial(self.button_callback, button_name=name),
             )
             self._unbold(self.buttons[name])
             self.pages[name] = {}
-            pos_y += bh + bs
+            pos_y += btn_height + bs
         upper_end_y = pos_y
 
         # Lower group — packed above the bottom corner block (swish or plain rect)
-        n_lower = len(lower)
-        lower_gap = n_lower * (bh + bs) if n_lower > 0 else bs
+        lower_heights = [_btn_h(name) for name in lower]
+        lower_gap = (sum(lower_heights) + len(lower) * bs) if lower else bs
         lower_start_y = iy + ih - bh - lower_gap
+        pos_y = lower_start_y
         for i, name in enumerate(lower):
-            btn_y = lower_start_y + i * (bh + bs)
+            btn_height = lower_heights[i]
+            display_text = button_texts.get(name, name)
             self.buttons[name] = Bracket(
-                lcars, QtCore.QRect(btn_x, btn_y, bw, bh), name + " ", self.color,
+                lcars, QtCore.QRect(btn_x, pos_y, bw, btn_height), display_text + " ", self.color,
             )
             self.buttons[name].clicked.connect(
                 partial(self.button_callback, button_name=name),
             )
             self._unbold(self.buttons[name])
             self.pages[name] = {}
+            pos_y += btn_height + bs
 
         # Fill between groups
         fill_h = lower_start_y - upper_end_y
