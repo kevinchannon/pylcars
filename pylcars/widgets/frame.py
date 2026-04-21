@@ -23,7 +23,7 @@ _px_to_pt: dict[str, tuple[float, float]] = {}
 
 
 def _cap_height(fm: QtGui.QFontMetrics) -> int:
-    return fm.tightBoundingRect("X").height()
+    return fm.capHeight() - 1
 
 
 def _calibrate(family: str) -> None:
@@ -181,9 +181,7 @@ class Frame:
         has_right = FrameBorder.RIGHT in borders
 
         font_points = points_for_height(config.DEFAULT_FONT_NAME, thin_thickness)
-        ic(font_points)
-        t = QtGui.QFontMetrics(QtGui.QFont(config.DEFAULT_FONT_NAME, font_points)).tightBoundingRect("X").height()
-        ic(t)
+        t = QtGui.QFontMetrics(QtGui.QFont(config.DEFAULT_FONT_NAME, font_points)).capHeight()
         T = thick_thickness
         bh = 2 * t
         bw = int(T * 2 / 3)
@@ -456,28 +454,20 @@ class Frame:
     ) -> Textline:
         """Text label cut into a bar, anchored near the left or right end."""
         font_size = points_for_height(config.DEFAULT_FONT_NAME, t)
-        ic(font_size)
         gap = 12
         _font = QtGui.QFont(config.DEFAULT_FONT_NAME, font_size)
         _font.setLetterSpacing(QtGui.QFont.AbsoluteSpacing, 1)
         fm = QtGui.QFontMetrics(_font)
-        font_height = fm.tightBoundingRect("I").height()
-        ic()
+        font_height = fm.capHeight()
         text_w = fm.horizontalAdvance(text) + int(3 * fm.tightBoundingRect("I").width())
         text_x = (x_anchor + gap) if align_left else (x_anchor - gap - text_w)
-        ic(text_x)
-        ic(text_w)
         b = Block(lcars, QtCore.QRect(text_x, y, text_w, t), "#000000")
         widget_h = fm.height()
-        ic(widget_h)
         widget_y = max(0, y + t // 2 - font_height + font_height // 2)
-        # widget_y = y
-        ic(widget_y)
-        ic(b.rect)
         label = Textline(lcars, b.rect, color, font_size)
         label.setStyleSheet(f"background: transparent; color: {color}; border: none;")
         label.setText(text)
-        #abel.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter)
+        label.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter)
         Frame._unbold(label)
         return label
 
