@@ -265,11 +265,11 @@ class SFrame:
 
         self._place_btns(
             lcars, upper_bx, iy + bh + bs, mid_y - t,
-            bh, bw, bs, upper_buttons, self.upper_pages, upper_cb,
+            bh, bw, bs, upper_buttons, self.upper_pages, upper_cb, upper_side,
         )
         self._place_btns(
             lcars, lower_bx, mid_y + bh + bs, iy + ih - bh,
-            bh, bw, bs, lower_buttons, self.lower_pages, lower_cb,
+            bh, bw, bs, lower_buttons, self.lower_pages, lower_cb, lower_side,
         )
 
         self.upper_active_page = self.upper_fields[0] if self.upper_fields else ""
@@ -318,12 +318,18 @@ class SFrame:
         names: List[str],
         pages: Dict[str, Dict[str, Any]],
         callback: Callable,
+        side: str = 'left',
     ) -> None:
         """Place a button group from top_y downward; fill remaining space."""
+        align_left = side == 'right'
+        btn_style = Bracket.default_style.replace(
+            "Text-align: right;", "Text-align: left;" if align_left else "Text-align: right;"
+        )
         pos_y = top_y
         for name in names:
+            label = " " + name if align_left else name + " "
             self.buttons[name] = Bracket(
-                lcars, QtCore.QRect(btn_x, pos_y, bw, bh), name + " ", self.color,
+                lcars, QtCore.QRect(btn_x, pos_y, bw, bh), label, self.color, style=btn_style,
             )
             self.buttons[name].clicked.connect(partial(callback, button_name=name))
             Frame._unbold(self.buttons[name])
