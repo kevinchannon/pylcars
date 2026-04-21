@@ -165,7 +165,7 @@ class Frame:
         font_points = points_for_height(config.DEFAULT_FONT_NAME, thin_thickness)
         t = QtGui.QFontMetrics(QtGui.QFont(config.DEFAULT_FONT_NAME, font_points)).capHeight()
         T = thick_thickness
-        bh = 2 * t
+        bh = max(30, 2 * t)
         bw = int(T * 2 / 3)
         bar = bw + t          # Separator internal bar_width value
         bs = button_spacing
