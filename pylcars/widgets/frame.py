@@ -2,7 +2,6 @@
 """Generic LCARS frame widget driven by a set of visible borders."""
 from functools import partial
 from typing import Any, Callable, Dict, List, Optional, Set
-from icecream import ic
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
@@ -17,40 +16,20 @@ from ..frame_border import FrameBorder
 from ..orientation import Orientation
 
 
-# Per-family cache of (pt_per_px, intercept_pt) for the px→pt linear fit.
-# Populated once on first use of each font family.
-_px_to_pt: dict[str, tuple[float, float]] = {}
-
-
 def _cap_height(fm: QtGui.QFontMetrics) -> int:
-    return fm.capHeight() - 1
-
-
-def _calibrate(family: str) -> None:
-    """Sample two point sizes and cache the linear px→pt coefficients.
-
-    Uses cap height (top of a capital letter to baseline) as the reference
-    metric so that the resulting point size fills the bar with visible glyphs,
-    not with invisible leading or descent space.
-    """
-    pt_lo, pt_hi = 10, 30
-    h_lo = _cap_height(QtGui.QFontMetrics(QtGui.QFont(family, pt_lo)))
-    h_hi = _cap_height(QtGui.QFontMetrics(QtGui.QFont(family, pt_hi)))
-    # pt = slope * px + offset  (inverse of the px(pt) line)
-    slope = (pt_hi - pt_lo) / (h_hi - h_lo)
-    offset = pt_lo - slope * h_lo
-    _px_to_pt[family] = (slope, offset)
+    return fm.capHeight()
 
 
 def points_for_height(family: str, target_px: int) -> int:
-    """Return the point size whose rendered height best fits target_px.
-
-    Calibrates once per font family; subsequent calls are a multiply-add.
-    """
-    if family not in _px_to_pt:
-        _calibrate(family)
-    slope, offset = _px_to_pt[family]
-    return max(4, round(slope * target_px + offset))
+    """Return the largest point size whose cap height does not exceed target_px."""
+    lo, hi = 4, 200
+    while lo < hi:
+        mid = (lo + hi + 1) // 2
+        if _cap_height(QtGui.QFontMetrics(QtGui.QFont(family, mid))) <= target_px:
+            lo = mid
+        else:
+            hi = mid - 1
+    return lo
 
 
 class Frame:
