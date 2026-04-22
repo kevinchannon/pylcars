@@ -323,7 +323,7 @@ class SFrame:
         """Place a button group from top_y downward; fill remaining space."""
         align_left = side == 'right'
         btn_style = Bracket.default_style.replace(
-            "Text-align: right;", "Text-align: left;" if align_left else "Text-align: right;"
+            "Text-align: top right;", "Text-align: top left;" if align_left else "Text-align: top right;"
         )
         pos_y = top_y
         for name in names:

@@ -327,7 +327,7 @@ class Frame:
 
         align_left = side == 'right'
         btn_style = Bracket.default_style.replace(
-            "Text-align: right;", "Text-align: left;" if align_left else "Text-align: right;"
+            "Text-align: top right;", "Text-align: top left;" if align_left else "Text-align: top right;"
         )
 
         def _btn_h(name: str) -> int:
