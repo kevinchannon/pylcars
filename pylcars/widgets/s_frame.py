@@ -327,9 +327,8 @@ class SFrame:
         )
         pos_y = top_y
         for name in names:
-            label = " " + name if align_left else name + " "
             self.buttons[name] = Bracket(
-                lcars, QtCore.QRect(btn_x, pos_y, bw, bh), label, self.color, style=btn_style,
+                lcars, QtCore.QRect(btn_x, pos_y, bw, bh), name, self.color, style=btn_style,
             )
             self.buttons[name].clicked.connect(partial(callback, button_name=name))
             Frame._unbold(self.buttons[name])

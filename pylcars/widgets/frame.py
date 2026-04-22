@@ -334,16 +334,13 @@ class Frame:
             n = button_texts.get(name, name).count('\n') + 1
             return min_h * n
 
-        def _btn_text(display_text: str) -> str:
-            return " " + display_text if align_left else display_text + " "
-
         # Upper group — start below the top corner block (swish or plain rect)
         pos_y = iy + bh + bs
         for name in upper:
             btn_height = _btn_h(name)
             display_text = button_texts.get(name, name)
             self.buttons[name] = Bracket(
-                lcars, QtCore.QRect(btn_x, pos_y, bw, btn_height), _btn_text(display_text), self.color,
+                lcars, QtCore.QRect(btn_x, pos_y, bw, btn_height), display_text, self.color,
                 style=btn_style,
             )
             self.buttons[name].clicked.connect(
@@ -363,7 +360,7 @@ class Frame:
             btn_height = lower_heights[i]
             display_text = button_texts.get(name, name)
             self.buttons[name] = Bracket(
-                lcars, QtCore.QRect(btn_x, pos_y, bw, btn_height), _btn_text(display_text), self.color,
+                lcars, QtCore.QRect(btn_x, pos_y, bw, btn_height), display_text, self.color,
                 style=btn_style,
             )
             self.buttons[name].clicked.connect(
