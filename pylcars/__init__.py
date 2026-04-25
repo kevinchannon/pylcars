@@ -31,6 +31,7 @@ from .widgets.updown import Updown
 from .widgets.layout_grid import LayoutGrid
 from .widgets.slider import Slider
 from .widgets.textline import Textline
+from .widgets.plot import Plot
 from .sound import Sound
 from . import config
 
@@ -63,6 +64,7 @@ __all__ = [
     "LayoutGrid",
     "Slider",
     "Textline",
+    "Plot",
     "Sound",
     "set_font",
     "config",

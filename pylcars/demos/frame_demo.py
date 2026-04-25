@@ -6,6 +6,7 @@ Demonstrates Frame with borders={TOP, BOTTOM, LEFT} — the classic C-Style.
 Run with:
     python -m pylcars.demos.c_style_frame_demo
 """
+import math
 import sys
 from PyQt5 import QtCore, QtWidgets
 
@@ -21,7 +22,7 @@ class CStyleFrameDemo(pylcars.Lcars):
             self,
             QtCore.QRect(0, 0, 800, 480),
             borders={pylcars.FrameBorder.TOP, pylcars.FrameBorder.BOTTOM, pylcars.FrameBorder.LEFT},
-            left_upper_buttons=["ALPHA", "BETA", "GAMMA"],
+            left_upper_buttons=["ALPHA", "BETA", "GAMMA", "PLOT"],
             left_lower_buttons=["INFO", "QUIT"],
             header_text="C-STYLE",
             footer_text="DEMO",
@@ -34,6 +35,7 @@ class CStyleFrameDemo(pylcars.Lcars):
         self._build_page("ALPHA", pylcars.Colors.orange,     "ALPHA")
         self._build_page("BETA",  pylcars.Colors.flieder,    "BETA")
         self._build_page("GAMMA", pylcars.Colors.leuchtblau, "GAMMA")
+        self._build_plot_page(dr)
         self._build_info_page(dr)
         self._build_quit_page(dr)
 
@@ -46,6 +48,23 @@ class CStyleFrameDemo(pylcars.Lcars):
         lbl.setAlignment(QtCore.Qt.AlignCenter)
         lbl.hide()
         self.frame.pages[name]["label"] = lbl
+
+    def _build_plot_page(self, dr: QtCore.QRect) -> None:
+        pad = 10
+        plot = pylcars.Plot(
+            self,
+            QtCore.QRect(dr.x() + pad, dr.y() + pad, dr.width() - 2 * pad, dr.height() - 2 * pad),
+            pylcars.Colors.leuchtblau,
+            grid=True,
+            log_x=True,
+            log_y=True,
+        )
+        n = 50
+        xs = [0.1 * (10000 ** (i / (n - 1))) for i in range(n)]  # log-spaced 0.1 → 1000
+        plot.add_series((xs, [x ** 0.5 for x in xs]))   # slope 0.5 on log-log
+        plot.add_series((xs, [x ** 1.5 for x in xs]))   # slope 1.5 on log-log
+        plot.hide()
+        self.frame.pages["PLOT"]["plot"] = plot
 
     def _build_info_page(self, dr: QtCore.QRect) -> None:
         texts = [
