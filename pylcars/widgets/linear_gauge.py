@@ -26,7 +26,7 @@ class GaugeConfig:
     interval: float              # tick spacing
     title: str = ""
     unit: str = ""
-    marker_size: int = 36        # triangle height in px
+    marker_size: int = 25        # triangle height in px
     zones: List[ZoneInterval] = field(default_factory=list)
 
 
@@ -178,9 +178,10 @@ class LinearGauge(Widgets, QtWidgets.QWidget):
         badge_full_w = unit_fm.horizontalAdvance(config.unit) + 10 + badge_h // 2
 
         tick_area   = self._TICK_LEN + max_lw + 3
-        marker_area = marker_w + self._ELEM_GAP + max_val_w + self._ELEM_GAP + badge_full_w + self._ELEM_GAP
+        # Marker sits beyond the tick labels, so its offset from the axis equals tick_area
+        marker_area = tick_area + self._ELEM_GAP + marker_w + self._ELEM_GAP + max_val_w + self._ELEM_GAP + badge_full_w + self._ELEM_GAP
 
-        return max(tick_area, marker_area)
+        return marker_area
 
     def _compute_layout(self) -> Tuple[int, Optional[int], Optional[int]]:
         """Return ``(total_width, left_axis_x, right_axis_x)``."""
@@ -225,7 +226,7 @@ class LinearGauge(Widgets, QtWidgets.QWidget):
         p.fillRect(0, 0, w, h, QtGui.QColor("#000000"))
 
         title_font = QtGui.QFont(self.default_font)
-        title_font.setPointSize(self.default_font.pointSize() + 2)
+        title_font.setPointSize(self.default_font.pointSize() + 4)
         gtitle_font = QtGui.QFont(self.default_font)
         tick_font   = QtGui.QFont(self.default_font)
 
@@ -314,8 +315,9 @@ class LinearGauge(Widgets, QtWidgets.QWidget):
             p.fillRect(axis_x - half_t, y_top, zone.thickness, bar_h,
                        QtGui.QColor(zone.colour))
 
-        # Tick marks and labels
+        # Tick marks and labels — track widest label for marker offset
         p.setFont(tick_font)
+        max_tick_lw = 0
         v = vmin
         while v <= vmax + 1e-9:
             y = self._val_to_y(v, vmin, vmax, top, bottom)
@@ -323,6 +325,7 @@ class LinearGauge(Widgets, QtWidgets.QWidget):
             p.drawLine(axis_x, y, axis_x + sign * self._TICK_LEN, y)
             label = _fmt_value(v)
             lw = tick_fm.horizontalAdvance(label)
+            max_tick_lw = max(max_tick_lw, lw)
             lx = (axis_x - self._TICK_LEN - lw - 3) if side == "left" else (axis_x + self._TICK_LEN + 3)
             p.setPen(QtGui.QColor("#fc9"))
             p.drawText(lx, y + tick_fm.ascent() // 2, label)
@@ -344,15 +347,19 @@ class LinearGauge(Widgets, QtWidgets.QWidget):
         marker_w = marker_h // 2   # triangle width = half its height
         half_mh  = marker_h // 2
 
-        # Marker triangle
+        # Offset marker apex past the tick labels so the marker never obscures them
+        tick_clearance = self._TICK_LEN + max_tick_lw + self._ELEM_GAP
         if side == "left":
-            tri = [QtCore.QPoint(axis_x,            marker_y),
-                   QtCore.QPoint(axis_x - marker_w, marker_y - half_mh),
-                   QtCore.QPoint(axis_x - marker_w, marker_y + half_mh)]
+            apex_x = axis_x - tick_clearance
+            base_x = apex_x - marker_w
         else:
-            tri = [QtCore.QPoint(axis_x,            marker_y),
-                   QtCore.QPoint(axis_x + marker_w, marker_y - half_mh),
-                   QtCore.QPoint(axis_x + marker_w, marker_y + half_mh)]
+            apex_x = axis_x + tick_clearance
+            base_x = apex_x + marker_w
+
+        # Marker triangle
+        tri = [QtCore.QPoint(apex_x, marker_y),
+               QtCore.QPoint(base_x, marker_y - half_mh),
+               QtCore.QPoint(base_x, marker_y + half_mh)]
         p.setBrush(QtGui.QBrush(zone_col))
         p.setPen(QtCore.Qt.NoPen)
         p.drawPolygon(*tri)
@@ -363,9 +370,9 @@ class LinearGauge(Widgets, QtWidgets.QWidget):
         p.setFont(val_font)
         p.setPen(zone_col)
         if side == "left":
-            val_x = axis_x - marker_w - val_w - self._ELEM_GAP
+            val_x = base_x - val_w - self._ELEM_GAP
         else:
-            val_x = axis_x + marker_w + self._ELEM_GAP
+            val_x = base_x + self._ELEM_GAP
         p.drawText(val_x, marker_y - val_fm.height() // 2 + val_fm.ascent(), val_text)
 
         # Unit badge — pill height = marker height; font scaled to fit inside
