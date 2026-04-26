@@ -22,7 +22,7 @@ class CStyleFrameDemo(pylcars.Lcars):
             self,
             QtCore.QRect(0, 0, 800, 480),
             borders={pylcars.FrameBorder.TOP, pylcars.FrameBorder.BOTTOM, pylcars.FrameBorder.LEFT},
-            left_upper_buttons=["ALPHA", "BETA", "GAMMA", "PLOT"],
+            left_upper_buttons=["ALPHA", "BETA", "GAMMA", "PLOT", "GAUGE"],
             left_lower_buttons=["INFO", "QUIT"],
             header_text="C-STYLE",
             footer_text="DEMO",
@@ -36,6 +36,7 @@ class CStyleFrameDemo(pylcars.Lcars):
         self._build_page("BETA",  pylcars.Colors.flieder,    "BETA")
         self._build_page("GAMMA", pylcars.Colors.leuchtblau, "GAMMA")
         self._build_plot_page(dr)
+        self._build_gauge_page(dr)
         self._build_info_page(dr)
         self._build_quit_page(dr)
 
@@ -65,6 +66,62 @@ class CStyleFrameDemo(pylcars.Lcars):
         plot.add_series((xs, [x ** 1.5 for x in xs]))   # slope 1.5 on log-log
         plot.hide()
         self.frame.pages["PLOT"]["plot"] = plot
+
+    def _build_gauge_page(self, dr: QtCore.QRect) -> None:
+        pad = 10
+        spacing = 20
+        y = dr.y() + pad
+        h = dr.height() - 2 * pad
+
+        temp_cfg = pylcars.GaugeConfig(
+            range=(0, 35), interval=5,
+            title="TEMP", unit="°C",
+            zones=[
+                pylcars.ZoneInterval(start=0,  colour=pylcars.Colors.leuchtblau, thickness=6),
+                pylcars.ZoneInterval(start=20, colour=pylcars.Colors.hellorange,  thickness=6),
+                pylcars.ZoneInterval(start=30, colour=pylcars.Colors.rot,         thickness=8),
+            ],
+        )
+        rain_cfg = pylcars.GaugeConfig(
+            range=(0, 100), interval=10,
+            title="RAINFALL", unit="mm",
+            zones=[
+                pylcars.ZoneInterval(start=0,  colour=pylcars.Colors.blaugrau,  thickness=6),
+                pylcars.ZoneInterval(start=60, colour=pylcars.Colors.flieder,    thickness=6),
+                pylcars.ZoneInterval(start=85, colour=pylcars.Colors.rot,        thickness=8),
+            ],
+        )
+
+        # Left-only gauge
+        g_left = pylcars.LinearGauge(
+            self, QtCore.QRect(dr.x() + pad, y, dr.width(), h),
+            pylcars.Colors.orange, mode="left", title="TEMP", left=temp_cfg,
+        )
+        g_left.set_value("left", 25)
+
+        # Dual gauge — positioned immediately to the right of the left gauge
+        dual_x = g_left.rect.x() + g_left.rect.width() + spacing
+        g_dual = pylcars.LinearGauge(
+            self, QtCore.QRect(dual_x, y, dr.width(), h),
+            pylcars.Colors.orange, mode="dual", title="CURRENT",
+            left=temp_cfg, right=rain_cfg,
+        )
+        g_dual.set_value("left",  25)
+        g_dual.set_value("right", 80)
+
+        # Right-only gauge — positioned immediately to the right of the dual gauge
+        right_x = g_dual.rect.x() + g_dual.rect.width() + spacing
+        g_right = pylcars.LinearGauge(
+            self, QtCore.QRect(right_x, y, dr.width(), h),
+            pylcars.Colors.orange, mode="right", title="RAINFALL", right=rain_cfg,
+        )
+        g_right.set_value("right", 80)
+
+        for g in (g_left, g_dual, g_right):
+            g.hide()
+        self.frame.pages["GAUGE"]["g_left"]  = g_left
+        self.frame.pages["GAUGE"]["g_dual"]  = g_dual
+        self.frame.pages["GAUGE"]["g_right"] = g_right
 
     def _build_info_page(self, dr: QtCore.QRect) -> None:
         texts = [
