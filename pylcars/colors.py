@@ -39,3 +39,4 @@ class Colors(Enumeration):  # type: ignore
     pink: str = '#c69'
     hellorange: str = '#fc4'
     rot: str = '#c00'
+    yellow: str = '#dfce86'
