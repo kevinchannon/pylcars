@@ -101,9 +101,12 @@ class LinearGauge(Widgets, QtWidgets.QWidget):
         g.set_value("left", 75)
     """
 
-    _AXIS_GAP = 10   # px gap between left and right axes in dual mode
-    _TICK_LEN = 8    # px length of each tick mark
-    _ELEM_GAP = 6    # px gap between marker / value / badge elements
+    _AXIS_GAP = 10      # px gap between left and right axes in dual mode
+    _TICK_LEN = 8       # px length of each tick mark
+    _ELEM_GAP = 6       # px gap between marker / value / badge elements
+    _BRACKET_ARM = 15   # px horizontal arm length of gauge end-bracket
+    _BRACKET_LEG = 10   # px vertical leg length of gauge end-bracket
+    _BRACKET_W = 3      # px line width of gauge end-bracket
 
     def __init__(
         self,
@@ -314,6 +317,16 @@ class LinearGauge(Widgets, QtWidgets.QWidget):
             half_t = zone.thickness // 2
             p.fillRect(axis_x - half_t, y_top, zone.thickness, bar_h,
                        QtGui.QColor(zone.colour))
+
+        # L-shaped end brackets at top and bottom of the gauge axis
+        bracket_pen = QtGui.QPen(QtGui.QColor(self.color), self._BRACKET_W)
+        bracket_pen.setCapStyle(QtCore.Qt.SquareCap)
+        p.setPen(bracket_pen)
+        outer_x = axis_x + sign * self._BRACKET_ARM
+        p.drawLine(axis_x, top,    outer_x, top)               # top arm
+        p.drawLine(outer_x, top,   outer_x, top + self._BRACKET_LEG)   # top leg (down)
+        p.drawLine(axis_x, bottom, outer_x, bottom)            # bottom arm
+        p.drawLine(outer_x, bottom, outer_x, bottom - self._BRACKET_LEG)  # bottom leg (up)
 
         # Tick marks and labels — track widest label for marker offset
         p.setFont(tick_font)

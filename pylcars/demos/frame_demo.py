@@ -125,46 +125,62 @@ class CStyleFrameDemo(pylcars.Lcars):
         self.frame.pages["GAUGE"]["g_right"] = g_right
 
     def _build_split_pill_page(self, dr: QtCore.QRect) -> None:
-        # (label, key, value, numeric, pill_color)
-        rows = [
-            ("SOLAR GEN",   "solar_gen",   "3842",  3842,  pylcars.Colors.yellow),
-            ("HOUSE USED",  "house_used",  "2105",  2105,  pylcars.Colors.flieder),
-            ("GRID EXPORT", "grid_export", "1201",  1201,  pylcars.Colors.leuchtblau),
-            ("GRID IMPORT", "grid_import", "—",     None,  pylcars.Colors.blaugrau),
-            # Larger row to demonstrate font scaling
-            ("TALL ROW",    "tall",        "99999", 99999, pylcars.Colors.orange),
-        ]
-        # Color-range demo on SOLAR GEN: green when ≥ 3000, yellow 1000–3000, orange < 1000
-        solar_ranges = [
-            (1000, pylcars.Colors.hellorange),
-            (3000, pylcars.Colors.yellow),
+        SP = pylcars.SplitPillStyles
+        MnS = SP.MinorStyle
+        MjS = SP.MajorStyle
+        Ori = SP.Orientation
+
+        col_gap = 10
+        col_w = (dr.width() - col_gap) // 2
+        row_h = 50
+        row_gap = 8
+        pad_v = row_h // 8
+
+        # Left column — MAJOR_RIGHT (minor cap on the left)
+        left_col = [
+            # label,         key,        value,   numeric, color,                      minor,     major
+            ("SOLAR GEN",   "sp_ld_d",  "3842",  3842,   pylcars.Colors.yellow,      MnS.D,     MjS.D),
+            ("HOUSE USED",  "sp_lb_d",  "2105",  2105,   pylcars.Colors.flieder,     MnS.BLOCK, MjS.D),
+            ("GRID EXPORT", "sp_lr_d",  "1201",  1201,   pylcars.Colors.leuchtblau,  MnS.BAR,   MjS.D),
+            ("BATTERY",     "sp_ld_f",  "87",    87,     pylcars.Colors.beige,       MnS.D,     MjS.FLAT),
         ]
 
-        row_h_small, row_h_tall = 50, 70
-        outer_pad = 8
-        y = dr.y() + outer_pad
+        # Right column — MAJOR_LEFT (minor cap on the right)
+        right_col = [
+            # label,         key,        value,   numeric, color,                      minor,     major
+            ("INV OUTPUT",  "sp_rd_f",  "3750",  3750,   pylcars.Colors.hellorange,  MnS.D,     MjS.FLAT),
+            ("GRID IMPORT", "sp_rb_f",  "—",     None,   pylcars.Colors.blaugrau,    MnS.BLOCK, MjS.FLAT),
+            ("VOLTAGE",     "sp_rr_f",  "230",   230,    pylcars.Colors.orange,      MnS.BAR,   MjS.FLAT),
+            ("CURRENT",     "sp_rd_d",  "9",     9,      pylcars.Colors.rot,         MnS.D,     MjS.D),
+        ]
+
         page = self.frame.pages["SPLIT PILLS"]
-        for i, (label, key, value, numeric, pill_color) in enumerate(rows):
-            text_size = "large" if i == 2 else "small"
-            row_h = row_h_tall if key == "tall" else row_h_small
-            pad_v = row_h // 7
-            ranges = solar_ranges if key == "solar_gen" else []
-            pill = pylcars.SplitPill(
-                self,
-                QtCore.QRect(dr.x(), y, dr.width(), row_h),
-                label,
-                text_size=text_size,
-                digit_count=5,
-                pill_color=pill_color,
-                text_color=pylcars.Colors.hellorange,
-                color_ranges=ranges,
-                top_pad=pad_v,
-                bottom_pad=pad_v,
-            )
-            pill.set_value(value, numeric)
-            pill.hide()
-            page[key] = pill
-            y += row_h + outer_pad
+        col_x_left  = dr.x()
+        col_x_right = dr.x() + col_w + col_gap
+
+        for col_x, orientation, col_rows in (
+            (col_x_left,  Ori.MAJOR_RIGHT, left_col),
+            (col_x_right, Ori.MAJOR_LEFT,  right_col),
+        ):
+            y = dr.y() + row_gap
+            for label, key, value, numeric, pill_color, minor_style, major_style in col_rows:
+                pill = pylcars.SplitPill(
+                    self,
+                    QtCore.QRect(col_x, y, col_w, row_h),
+                    label,
+                    digit_count=5,
+                    pill_color=pill_color,
+                    text_color=pylcars.Colors.hellorange,
+                    minor_style=minor_style,
+                    major_style=major_style,
+                    orientation=orientation,
+                    top_pad=pad_v,
+                    bottom_pad=pad_v,
+                )
+                pill.set_value(value, numeric)
+                pill.hide()
+                page[key] = pill
+                y += row_h + row_gap
 
     def _build_info_page(self, dr: QtCore.QRect) -> None:
         texts = [
