@@ -39,11 +39,14 @@ from ..color_range import color_for_value
 
 class SplitPillStyles:
     class MinorStyle(Enum):
+        NONE = -1
         D = 0
         BLOCK = 1
         BAR = 2
+        TRIANGLE = 3
 
     class MajorStyle(Enum):
+        NONE = -1
         D = 0
         FLAT = 1
 
@@ -199,19 +202,34 @@ class SplitPill(QtWidgets.QWidget):
         # The minor cap always occupies a slot of width `radius` in the layout so
         # that the digit column starts at the same x regardless of minor style.
         # BAR draws narrower within that slot; the slack becomes visual padding.
-        minor_slot = radius
+        # NONE collapses the slot to zero; the digit column hugs that edge instead.
+        minor_none = self._minor_style == SplitPillStyles.MinorStyle.NONE
+        major_none = self._major_style == SplitPillStyles.MajorStyle.NONE
+        minor_slot = 0 if minor_none else radius
         bar_w = max(3, radius // 3)
 
         if self._orientation == SplitPillStyles.Orientation.MAJOR_RIGHT:
             minor_x = self._lpad
-            digit_col_x = minor_x + minor_slot
-            pill_x = digit_col_x + digit_col_w
-            pill_w = max(0, w - pill_x - self._rpad)
+            if major_none:
+                # No pill on right — digit column right-edge at w - rpad
+                digit_col_x = w - self._rpad - digit_col_w
+                pill_x = 0
+                pill_w = 0
+            else:
+                digit_col_x = minor_x + minor_slot
+                pill_x = digit_col_x + digit_col_w
+                pill_w = max(0, w - pill_x - self._rpad)
         else:  # MAJOR_LEFT
             minor_x = w - self._rpad - minor_slot
-            digit_col_x = minor_x - digit_col_w
-            pill_x = self._lpad
-            pill_w = max(0, digit_col_x - self._lpad)
+            if major_none:
+                # No pill on left — digit column left-edge at lpad
+                digit_col_x = self._lpad
+                pill_x = 0
+                pill_w = 0
+            else:
+                digit_col_x = minor_x - digit_col_w
+                pill_x = self._lpad
+                pill_w = max(0, digit_col_x - self._lpad)
 
         self._inner_h = inner_h
         self._inner_y = inner_y
@@ -238,6 +256,9 @@ class SplitPill(QtWidgets.QWidget):
         return inner_y + inner_h - fm.ascent()
 
     def _draw_minor_cap(self, p: QtGui.QPainter) -> None:
+        if self._minor_style == SplitPillStyles.MinorStyle.NONE:
+            return
+
         ih = self._inner_h
         iy = self._inner_y
         r  = self._radius
@@ -259,11 +280,25 @@ class SplitPill(QtWidgets.QWidget):
                 p.drawEllipse(QtCore.QRectF(mx - r, iy, ih, ih))
         elif self._minor_style == SplitPillStyles.MinorStyle.BLOCK:
             p.drawRect(QtCore.QRectF(mx, iy, r, ih))
-        else:  # BAR
+        elif self._minor_style == SplitPillStyles.MinorStyle.BAR:
             bw = self._bar_w
             # Bar sits at the outer edge of the slot (left for MAJOR_RIGHT, right for MAJOR_LEFT)
             bx = mx if major_right else mx + r - bw
             p.drawRect(QtCore.QRectF(bx, iy, bw, ih))
+        else:  # TRIANGLE — apex points outward, base flush with digit column
+            if major_right:
+                pts = QtGui.QPolygonF([
+                    QtCore.QPointF(mx,     iy + r),   # apex (left)
+                    QtCore.QPointF(mx + r, iy),        # base top
+                    QtCore.QPointF(mx + r, iy + ih),   # base bottom
+                ])
+            else:
+                pts = QtGui.QPolygonF([
+                    QtCore.QPointF(mx + r, iy + r),   # apex (right)
+                    QtCore.QPointF(mx,     iy),        # base top
+                    QtCore.QPointF(mx,     iy + ih),   # base bottom
+                ])
+            p.drawPolygon(pts)
 
         p.restore()
 

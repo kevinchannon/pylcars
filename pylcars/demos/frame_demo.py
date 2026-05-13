@@ -132,26 +132,32 @@ class CStyleFrameDemo(pylcars.Lcars):
 
         col_gap = 10
         col_w = (dr.width() - col_gap) // 2
-        row_h = 50
-        row_gap = 8
+        row_h = 46
+        row_gap = 7
         pad_v = row_h // 8
 
-        # Left column — MAJOR_RIGHT (minor cap on the left)
+        # Left column — MAJOR_RIGHT (minor cap on the left, pill on the right)
+        # label describes the minor cap style; major style is D throughout except last two
         left_col = [
-            # label,         key,        value,   numeric, color,                      minor,     major
-            ("SOLAR GEN",   "sp_ld_d",  "3842",  3842,   pylcars.Colors.yellow,      MnS.D,     MjS.D),
-            ("HOUSE USED",  "sp_lb_d",  "2105",  2105,   pylcars.Colors.flieder,     MnS.BLOCK, MjS.D),
-            ("GRID EXPORT", "sp_lr_d",  "1201",  1201,   pylcars.Colors.leuchtblau,  MnS.BAR,   MjS.D),
-            ("BATTERY",     "sp_ld_f",  "87",    87,     pylcars.Colors.beige,       MnS.D,     MjS.FLAT),
+            # label,          key,         value,  numeric, color,                      minor,          major
+            ("D CAP",        "sp_ld_d",   "3842", 3842,   pylcars.Colors.yellow,      MnS.D,          MjS.D),
+            ("BLOCK CAP",    "sp_lb_d",   "2105", 2105,   pylcars.Colors.flieder,     MnS.BLOCK,      MjS.D),
+            ("BAR CAP",      "sp_lr_d",   "1201", 1201,   pylcars.Colors.leuchtblau,  MnS.BAR,        MjS.D),
+            ("TRIANGLE CAP", "sp_lt_d",   "874",  874,    pylcars.Colors.beige,       MnS.TRIANGLE,   MjS.D),
+            ("FLAT PILL",    "sp_ld_f",   "99",   99,     pylcars.Colors.orange,      MnS.D,          MjS.FLAT),
+            ("NO MINOR CAP", "sp_ln_d",   "512",  512,    pylcars.Colors.blaugrau,    MnS.NONE,       MjS.D),
         ]
 
-        # Right column — MAJOR_LEFT (minor cap on the right)
+        # Right column — MAJOR_LEFT (pill on the left, minor cap on the right)
+        # label describes the minor cap style; major style is FLAT throughout except last two
         right_col = [
-            # label,         key,        value,   numeric, color,                      minor,     major
-            ("INV OUTPUT",  "sp_rd_f",  "3750",  3750,   pylcars.Colors.hellorange,  MnS.D,     MjS.FLAT),
-            ("GRID IMPORT", "sp_rb_f",  "—",     None,   pylcars.Colors.blaugrau,    MnS.BLOCK, MjS.FLAT),
-            ("VOLTAGE",     "sp_rr_f",  "230",   230,    pylcars.Colors.orange,      MnS.BAR,   MjS.FLAT),
-            ("CURRENT",     "sp_rd_d",  "9",     9,      pylcars.Colors.rot,         MnS.D,     MjS.D),
+            # label,          key,         value,  numeric, color,                      minor,          major
+            ("D CAP",        "sp_rd_f",   "3750", 3750,   pylcars.Colors.yellow,      MnS.D,          MjS.FLAT),
+            ("BLOCK CAP",    "sp_rb_f",   "630",  630,    pylcars.Colors.flieder,     MnS.BLOCK,      MjS.FLAT),
+            ("BAR CAP",      "sp_rr_f",   "230",  230,    pylcars.Colors.leuchtblau,  MnS.BAR,        MjS.FLAT),
+            ("TRIANGLE CAP", "sp_rt_f",   "47",   47,     pylcars.Colors.beige,       MnS.TRIANGLE,   MjS.FLAT),
+            ("D PILL CAP",   "sp_rd_d",   "9",    9,      pylcars.Colors.orange,      MnS.D,          MjS.D),
+            ("NO MAJOR PILL","sp_rn_n",   "—",    None,   pylcars.Colors.blaugrau,    MnS.D,          MjS.NONE),
         ]
 
         page = self.frame.pages["SPLIT PILLS"]
