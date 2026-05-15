@@ -31,7 +31,7 @@ app.exec_()
 
 - **🎨 LCARS-themed Widgets** - Pre-styled UI components matching the Star Trek aesthetic
 - **🖼️ SVG Support** - Dynamic vector graphics with automatic caching
-- **🔊 Audio Integration** - Built-in WAV file playback with PyAudio
+- **🔊 Audio Integration** - Optional WAV file playback via PyAudio
 - **⚡ Animation Effects** - Visual feedback including "tickle" highlighting
 - **🎯 Type-Safe** - Full type hints for IDE support and static analysis
 - **📚 Well-Documented** - Comprehensive docstrings and usage guides
@@ -45,36 +45,45 @@ app.exec_()
 
 - Python 3.8 or higher
 - PyQt5
-- PortAudio (for audio support)
+- PortAudio (optional — only needed for audio playback)
 
 ### Ubuntu/Debian
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y python3 python3-pip python3-pyqt5 portaudio19-dev
+sudo apt-get install -y python3 python3-pip python3-pyqt5
 
+# Without audio
 pip install pylcars
+
+# With audio
+sudo apt-get install -y portaudio19-dev
+pip install "pylcars[audio]"
 ```
 
 ### macOS
 
 ```bash
-brew install python3 portaudio
-pip install PyQt5 pylcars
+brew install python3
+pip install pylcars           # without audio
+
+# With audio
+brew install portaudio
+pip install "pylcars[audio]"
 ```
 
 ### Windows
 
 1. Install Python 3.8+ from [python.org](https://www.python.org)
-2. Install PyAudio and PyQt5:
+2. Install PyQt5 and pylcars:
    ```bash
-   pip install PyQt5 pylcars
+   pip install pylcars           # without audio
    ```
-   For audio support, use `pipwin`:
+   For audio support, install PortAudio first via `pipwin`, then use the audio extra:
    ```bash
    pip install pipwin
    pipwin install portaudio
-   pip install pyaudio
+   pip install "pylcars[audio]"
    ```
 
 ### From Source
@@ -82,7 +91,8 @@ pip install PyQt5 pylcars
 ```bash
 git clone https://github.com/StowasserH/pylcars.git
 cd pylcars
-pip install -e .
+pip install -e .              # without audio
+pip install -e ".[audio]"     # with audio
 ```
 
 ## 📖 Documentation
@@ -227,11 +237,20 @@ if __name__ == "__main__":
 
 ## 🔊 Audio Support
 
+Audio playback is optional. Install the `audio` extra to enable it:
+
+```bash
+pip install "pylcars[audio]"
+```
+
+When PyAudio is not installed, all sound calls are silent no-ops — the library
+imports and runs normally without any audio hardware or drivers present.
+
 ```python
 from pylcars import Lcars
 
 window = Lcars()
-window.set_play_sound(True)
+window.set_play_sound(True)      # no-op if PyAudio not installed
 window.set_sound_file("path/to/sound.wav")
 window.play_sound()
 ```
@@ -293,6 +312,9 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 
 # Install with development dependencies
 pip install -e ".[dev]"
+
+# Also include audio support during development
+pip install -e ".[dev,audio]"
 ```
 
 ### Running Tests
@@ -322,6 +344,7 @@ flake8 pylcars/
 ## 🐛 Troubleshooting
 
 ### Audio not working
+- Install the audio extra: `pip install "pylcars[audio]"`
 - Ensure PortAudio is installed: `sudo apt-get install portaudio19-dev`
 - Test PyAudio: `python -c "import pyaudio; print(pyaudio.__version__)"`
 

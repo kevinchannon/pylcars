@@ -3,11 +3,20 @@
 This module provides sound playing capabilities for the LCARS interface using
 PyAudio for real-time audio streaming. It manages multiple concurrent audio streams
 and handles WAV file playback with proper resource cleanup.
+
+PyAudio is an optional dependency. If it is not installed, all Sound methods
+become silent no-ops and no exception is raised at import time.
 """
-import pyaudio
 import wave
-from typing import Optional, List, Callable, Tuple, Any
+from typing import Optional, List, Tuple, Any
 from .config import AUDIO_CHUNK_SIZE
+
+try:
+    import pyaudio as _pyaudio
+    _PYAUDIO_AVAILABLE = True
+except ImportError:
+    _pyaudio = None  # type: ignore[assignment]
+    _PYAUDIO_AVAILABLE = False
 
 
 class Sound:
@@ -19,12 +28,12 @@ class Sound:
 
     Attributes:
         sound_file: Path to the sound file to play.
-        wav: PyAudio instance for audio playback.
+        wav: PyAudio instance for audio playback (None when PyAudio unavailable).
         streams: List of active audio streams.
     """
     sound_file: Optional[str]
-    wav: Optional[pyaudio.PyAudio]
-    streams: List[pyaudio.Stream]
+    wav: Optional[Any]    # pyaudio.PyAudio when available
+    streams: List[Any]    # List[pyaudio.Stream] when available
 
     def set_sound_file(self, sound_file: str) -> None:
         """Set the sound file to be played.
@@ -109,13 +118,11 @@ class Sound:
             chunk: int = AUDIO_CHUNK_SIZE
             wf: wave.Wave_read = wave.open(file, 'rb')
 
-            # define callback (2)
             def callback(in_data: bytes, frame_count: int, time_info: Any, status: Any) -> Tuple[bytes, int]:
                 data: bytes = wf.readframes(frame_count)
-                return data, pyaudio.paContinue
+                return data, _pyaudio.paContinue  # type: ignore[union-attr]
 
-            # open stream using callback (3)
-            stream: pyaudio.Stream = self.wav.open(
+            stream: Any = self.wav.open(
                 format=self.wav.get_format_from_width(wf.getsampwidth()),
                 channels=wf.getnchannels(),
                 rate=wf.getframerate(),
@@ -155,10 +162,12 @@ class Sound:
                 pass
             self.wav = None
 
-        # Initialize PyAudio if requested
+        # Initialize PyAudio if requested (silently skip when not installed)
         if play_sound:
+            if not _PYAUDIO_AVAILABLE:
+                return
             try:
-                self.wav = pyaudio.PyAudio()
+                self.wav = _pyaudio.PyAudio()  # type: ignore[union-attr]
             except Exception as e:
                 print(f"Error initializing PyAudio: {e}")
                 self.wav = None
