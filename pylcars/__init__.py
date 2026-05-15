@@ -24,7 +24,7 @@ from .widgets.block import Block
 from .widgets.separator import Separator
 from .widgets.bracket import Bracket
 from .widgets.menue import Menue
-from .widgets.frame import Frame
+from .widgets.frame import Frame, points_for_height
 from .widgets.s_frame import SFrame
 from .frame_border import FrameBorder
 from .widgets.updown import Updown
@@ -61,6 +61,7 @@ __all__ = [
     "Bracket",
     "Menue",
     "Frame",
+    "points_for_height",
     "SFrame",
     "FrameBorder",
     "Updown",

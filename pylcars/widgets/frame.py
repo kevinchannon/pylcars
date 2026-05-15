@@ -121,6 +121,7 @@ class Frame:
         color_active: str = Conditions.active,
         button_callback: Optional[Callable[[str], None]] = None,
         button_texts: Optional[Dict[str, str]] = None,
+        button_font_size: Optional[int] = None,
     ) -> None:
         """Initialise a Frame.
 
@@ -141,6 +142,8 @@ class Frame:
             color: Primary frame color.
             color_active: Color for the active button.
             button_callback: Override for the default page-switch handler.
+            button_font_size: Point size for sidebar button text. When ``None``
+                (default) the Bracket default font size is used.
         """
         left_upper_buttons = left_upper_buttons or []
         left_lower_buttons = left_lower_buttons or []
@@ -262,12 +265,12 @@ class Frame:
         self._place_buttons(
             lcars, ix, iy, iw, ih, bh, bw, bs,
             left_upper_buttons, left_lower_buttons, side='left', has_sidebar=has_left,
-            button_texts=button_texts,
+            button_texts=button_texts, button_font_size=button_font_size,
         )
         self._place_buttons(
             lcars, ix, iy, iw, ih, bh, bw, bs,
             right_upper_buttons, right_lower_buttons, side='right', has_sidebar=has_right,
-            button_texts=button_texts,
+            button_texts=button_texts, button_font_size=button_font_size,
         )
 
         if self.fields:
@@ -316,6 +319,7 @@ class Frame:
         side: str,
         has_sidebar: bool = True,
         button_texts: Optional[Dict[str, str]] = None,
+        button_font_size: Optional[int] = None,
     ) -> None:
         """Create and register buttons for one sidebar."""
         if not upper and not lower and not has_sidebar:
@@ -347,6 +351,8 @@ class Frame:
                 partial(self.button_callback, button_name=name),
             )
             self._unbold(self.buttons[name])
+            if button_font_size is not None:
+                self._set_font_size(self.buttons[name], button_font_size)
             self.pages[name] = {}
             pos_y += btn_height + bs
         upper_end_y = pos_y
@@ -367,6 +373,8 @@ class Frame:
                 partial(self.button_callback, button_name=name),
             )
             self._unbold(self.buttons[name])
+            if button_font_size is not None:
+                self._set_font_size(self.buttons[name], button_font_size)
             self.pages[name] = {}
             pos_y += btn_height + bs
 
@@ -479,4 +487,10 @@ class Frame:
     def _unbold(widget: QtWidgets.QWidget) -> None:
         f = widget.font()
         f.setBold(False)
+        widget.setFont(f)
+
+    @staticmethod
+    def _set_font_size(widget: QtWidgets.QWidget, size: int) -> None:
+        f = widget.font()
+        f.setPointSize(size)
         widget.setFont(f)
