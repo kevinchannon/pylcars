@@ -1146,12 +1146,14 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "icecream" },
-    { name = "pyaudio" },
     { name = "pyqt5" },
     { name = "xxhash" },
 ]
 
 [package.optional-dependencies]
+audio = [
+    { name = "pyaudio" },
+]
 dev = [
     { name = "black", version = "24.8.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
     { name = "black", version = "25.11.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.9.*'" },
@@ -1177,14 +1179,14 @@ requires-dist = [
     { name = "flake8", marker = "extra == 'dev'", specifier = ">=4.0" },
     { name = "icecream", specifier = ">=2.2.0" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.0" },
-    { name = "pyaudio", specifier = "~=0.2.11" },
+    { name = "pyaudio", marker = "extra == 'audio'", specifier = "~=0.2.11" },
     { name = "pyqt5" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.0" },
     { name = "pytest-qt", marker = "extra == 'dev'", specifier = ">=4.0" },
     { name = "xxhash", specifier = "~=3.0.0" },
 ]
-provides-extras = ["dev"]
+provides-extras = ["audio", "dev"]
 
 [[package]]
 name = "pyqt5"
