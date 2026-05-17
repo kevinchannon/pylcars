@@ -26,6 +26,7 @@ from .widgets.bracket import Bracket
 from .widgets.menue import Menue
 from .widgets.frame import Frame, points_for_height
 from .widgets.s_frame import SFrame
+from .button_info import ButtonInfo
 from .frame_border import FrameBorder
 from .widgets.updown import Updown
 from .widgets.layout_grid import LayoutGrid
@@ -63,6 +64,7 @@ __all__ = [
     "Frame",
     "points_for_height",
     "SFrame",
+    "ButtonInfo",
     "FrameBorder",
     "Updown",
     "LayoutGrid",

@@ -12,6 +12,7 @@ from .textline import Textline
 from ..conditions import Conditions
 from .. import config
 from .frame import Frame, points_for_height
+from ..button_info import ButtonInfo, ButtonSpec, _btn_name
 
 
 class SFrame:
@@ -105,8 +106,8 @@ class SFrame:
         lcars: QtWidgets.QWidget,
         rect: QtCore.QRect,
         mirror: bool = False,
-        upper_buttons: Optional[List[str]] = None,
-        lower_buttons: Optional[List[str]] = None,
+        upper_buttons: Optional[List[ButtonSpec]] = None,
+        lower_buttons: Optional[List[ButtonSpec]] = None,
         split: float = 0.5,
         has_top: bool = False,
         has_bottom: bool = False,
@@ -129,8 +130,8 @@ class SFrame:
             rect: Bounding rectangle for the entire frame.
             mirror: False = right sidebar top / left sidebar bottom.
                     True  = left sidebar top / right sidebar bottom.
-            upper_buttons: Button names for the upper (top-half) sidebar.
-            lower_buttons: Button names for the lower (bottom-half) sidebar.
+            upper_buttons: Buttons for the upper (top-half) sidebar (str or ButtonInfo).
+            lower_buttons: Buttons for the lower (bottom-half) sidebar (str or ButtonInfo).
             split: Fractional vertical position of the mid-bar (0.0–1.0).
             has_top: Draw a thin bar across the top of the frame.
             has_bottom: Draw a thin bar across the bottom of the frame.
@@ -256,8 +257,8 @@ class SFrame:
         self.buttons = {}
         self.upper_pages: Dict[str, Dict[str, Any]] = {}
         self.lower_pages: Dict[str, Dict[str, Any]] = {}
-        self.upper_fields = list(upper_buttons)
-        self.lower_fields = list(lower_buttons)
+        self.upper_fields = [_btn_name(s) for s in upper_buttons]
+        self.lower_fields = [_btn_name(s) for s in lower_buttons]
         self.fields = self.upper_fields + self.lower_fields
 
         upper_cb = upper_button_callback or self.upper_frame_click
@@ -315,7 +316,7 @@ class SFrame:
         bh: int,
         bw: int,
         bs: int,
-        names: List[str],
+        names: List[ButtonSpec],
         pages: Dict[str, Dict[str, Any]],
         callback: Callable,
         side: str = 'left',
@@ -326,14 +327,17 @@ class SFrame:
             "Text-align: top right;", "Text-align: top left;" if align_left else "Text-align: top right;"
         )
         pos_y = top_y
-        for name in names:
+        for spec in names:
+            name = _btn_name(spec)
+            btn_color = spec.colour if isinstance(spec, ButtonInfo) and spec.colour is not None else self.color
+            btn_h = spec.height if isinstance(spec, ButtonInfo) and spec.height is not None else bh
             self.buttons[name] = Bracket(
-                lcars, QtCore.QRect(btn_x, pos_y, bw, bh), name, self.color, style=btn_style,
+                lcars, QtCore.QRect(btn_x, pos_y, bw, btn_h), name, btn_color, style=btn_style,
             )
             self.buttons[name].clicked.connect(partial(callback, button_name=name))
             Frame._unbold(self.buttons[name])
             pages[name] = {}
-            pos_y += bh + bs
+            pos_y += btn_h + bs
         fill_h = bot_y - pos_y
         if fill_h > 0:
             self._chrome.append(Block(lcars, QtCore.QRect(btn_x, pos_y, bw, fill_h), self.color))

@@ -22,8 +22,17 @@ class CStyleFrameDemo(pylcars.Lcars):
             self,
             QtCore.QRect(0, 0, 800, 480),
             borders={pylcars.FrameBorder.TOP, pylcars.FrameBorder.BOTTOM, pylcars.FrameBorder.LEFT},
-            left_upper_buttons=["ALPHA", "BETA", "GAMMA", "PLOT", "GAUGE"],
-            left_lower_buttons=["SPLIT PILLS", "INFO", "QUIT"],
+            left_upper_buttons=[
+                "ALPHA",
+                pylcars.ButtonInfo("GAMMA", colour=pylcars.Colors.leuchtblau, height=56),
+                "PLOT",
+                pylcars.ButtonInfo("GAUGE", height=52),
+            ],
+            left_lower_buttons=[
+                pylcars.ButtonInfo("SPLIT PILLS", colour=pylcars.Colors.beige, height=52),
+                "INFO",
+                pylcars.ButtonInfo("QUIT", colour=pylcars.Colors.rot),
+            ],
             header_text="C-STYLE",
             footer_text="DEMO",
             color=pylcars.Colors.orange,
@@ -33,7 +42,6 @@ class CStyleFrameDemo(pylcars.Lcars):
         dr = self.frame.display_rect()
 
         self._build_page("ALPHA", pylcars.Colors.orange,     "ALPHA")
-        self._build_page("BETA",  pylcars.Colors.flieder,    "BETA")
         self._build_page("GAMMA", pylcars.Colors.leuchtblau, "GAMMA")
         self._build_plot_page(dr)
         self._build_gauge_page(dr)

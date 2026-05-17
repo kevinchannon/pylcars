@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Generic LCARS frame widget driven by a set of visible borders."""
 from functools import partial
-from typing import Any, Callable, Dict, List, Optional, Set
+from typing import Any, Callable, Dict, List, Optional, Set, Union
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
@@ -14,6 +14,7 @@ from ..conditions import Conditions
 from .. import config
 from ..frame_border import FrameBorder
 from ..orientation import Orientation
+from ..button_info import ButtonInfo, ButtonSpec, _btn_name
 
 
 def _cap_height(fm: QtGui.QFontMetrics) -> int:
@@ -107,10 +108,10 @@ class Frame:
         lcars: QtWidgets.QWidget,
         rect: QtCore.QRect,
         borders: Set[FrameBorder],
-        left_upper_buttons: Optional[List[str]] = None,
-        left_lower_buttons: Optional[List[str]] = None,
-        right_upper_buttons: Optional[List[str]] = None,
-        right_lower_buttons: Optional[List[str]] = None,
+        left_upper_buttons: Optional[List[ButtonSpec]] = None,
+        left_lower_buttons: Optional[List[ButtonSpec]] = None,
+        right_upper_buttons: Optional[List[ButtonSpec]] = None,
+        right_lower_buttons: Optional[List[ButtonSpec]] = None,
         padding: int = 4,
         thin_thickness: int = 20,
         thick_thickness: int = 200,
@@ -129,10 +130,10 @@ class Frame:
             lcars: Parent LCARS window.
             rect: Bounding rectangle for the entire frame.
             borders: Set of FrameBorder values selecting which sides are drawn.
-            left_upper_buttons: Button names for the top of the left sidebar.
-            left_lower_buttons: Button names for the bottom of the left sidebar.
-            right_upper_buttons: Button names for the top of the right sidebar.
-            right_lower_buttons: Button names for the bottom of the right sidebar.
+            left_upper_buttons: Buttons for the top of the left sidebar (str or ButtonInfo).
+            left_lower_buttons: Buttons for the bottom of the left sidebar (str or ButtonInfo).
+            right_upper_buttons: Buttons for the top of the right sidebar (str or ButtonInfo).
+            right_lower_buttons: Buttons for the bottom of the right sidebar (str or ButtonInfo).
             padding: Gap between bounding rect and frame chrome (px).
             thin_thickness: Height of the horizontal bars (px).
             thick_thickness: Total width of each sidebar (px).
@@ -257,8 +258,8 @@ class Frame:
         self.buttons = {}
         self.pages = {}
         self.fields = (
-            list(left_upper_buttons) + list(left_lower_buttons)
-            + list(right_upper_buttons) + list(right_lower_buttons)
+            [_btn_name(s) for s in left_upper_buttons] + [_btn_name(s) for s in left_lower_buttons]
+            + [_btn_name(s) for s in right_upper_buttons] + [_btn_name(s) for s in right_lower_buttons]
         )
         self.button_callback = button_callback or self.frame_click
 
@@ -314,8 +315,8 @@ class Frame:
         lcars: QtWidgets.QWidget,
         ix: int, iy: int, iw: int, ih: int,
         bh: int, bw: int, bs: int,
-        upper: List[str],
-        lower: List[str],
+        upper: List[ButtonSpec],
+        lower: List[ButtonSpec],
         side: str,
         has_sidebar: bool = True,
         button_texts: Optional[Dict[str, str]] = None,
@@ -334,17 +335,24 @@ class Frame:
             "Text-align: top right;", "Text-align: top left;" if align_left else "Text-align: top right;"
         )
 
-        def _btn_h(name: str) -> int:
+        def _btn_h(spec: ButtonSpec) -> int:
+            if isinstance(spec, ButtonInfo) and spec.height is not None:
+                return spec.height
+            name = _btn_name(spec)
             n = button_texts.get(name, name).count('\n') + 1
             return min_h * n
 
+        def _btn_color(spec: ButtonSpec) -> str:
+            return spec.colour if isinstance(spec, ButtonInfo) and spec.colour is not None else self.color
+
         # Upper group — start below the top corner block (swish or plain rect)
         pos_y = iy + bh + bs
-        for name in upper:
-            btn_height = _btn_h(name)
+        for spec in upper:
+            name = _btn_name(spec)
+            btn_height = _btn_h(spec)
             display_text = button_texts.get(name, name)
             self.buttons[name] = Bracket(
-                lcars, QtCore.QRect(btn_x, pos_y, bw, btn_height), display_text, self.color,
+                lcars, QtCore.QRect(btn_x, pos_y, bw, btn_height), display_text, _btn_color(spec),
                 style=btn_style,
             )
             self.buttons[name].clicked.connect(
@@ -358,15 +366,16 @@ class Frame:
         upper_end_y = pos_y
 
         # Lower group — packed above the bottom corner block (swish or plain rect)
-        lower_heights = [_btn_h(name) for name in lower]
+        lower_heights = [_btn_h(spec) for spec in lower]
         lower_gap = (sum(lower_heights) + len(lower) * bs) if lower else bs
-        lower_start_y = iy + ih - bh - lower_gap
+        lower_start_y = max(upper_end_y + bs, iy + ih - bh - lower_gap)
         pos_y = lower_start_y
-        for i, name in enumerate(lower):
+        for i, spec in enumerate(lower):
+            name = _btn_name(spec)
             btn_height = lower_heights[i]
             display_text = button_texts.get(name, name)
             self.buttons[name] = Bracket(
-                lcars, QtCore.QRect(btn_x, pos_y, bw, btn_height), display_text, self.color,
+                lcars, QtCore.QRect(btn_x, pos_y, bw, btn_height), display_text, _btn_color(spec),
                 style=btn_style,
             )
             self.buttons[name].clicked.connect(
