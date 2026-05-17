@@ -362,7 +362,7 @@ class SplitPill(QtWidgets.QWidget):
             h_align = QtCore.Qt.AlignLeft
         else:
             label_x = px + (r if has_d_cap else 0) + self._txpad
-            label_w = pw - (r if has_d_cap else 0) - self._txpad
+            label_w = pw - (r if has_d_cap else 0) - 2 * self._txpad
             h_align = QtCore.Qt.AlignRight
 
         if self._text_size == "large":
