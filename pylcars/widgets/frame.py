@@ -73,6 +73,17 @@ class Frame:
         if self._footer_label is not None:
             self._footer_label.setText(text)
 
+    def _active_color(self, button_name: str) -> str:
+        """Return the colour to use when activating a button.
+
+        Buttons created with an explicit ``ButtonInfo.colour`` keep that colour
+        in both active and inactive states (they are decorative / informational).
+        Plain buttons (no custom colour) use ``self.color_active`` when active,
+        which is the standard LCARS navigation-highlight behaviour.
+        """
+        btn_color = self.buttons[button_name].color
+        return btn_color if btn_color != self.color else self.color_active
+
     def frame_click(self, button_name: str = "") -> None:
         """Switch to the named page with visual and audio feedback."""
         if not self.enabled or self.active_page == button_name:
@@ -81,7 +92,7 @@ class Frame:
         self.blend_out(self.active_page)
         self.buttons[self.active_page].tockle()
         self.active_page = button_name
-        self.buttons[self.active_page].tockle(self.color_active)
+        self.buttons[self.active_page].tockle(self._active_color(self.active_page))
         self.blend_in(self.active_page)
 
     def blend_out(self, page: str) -> None:
@@ -276,7 +287,7 @@ class Frame:
 
         if self.fields:
             self.active_page = self.fields[0]
-            self.buttons[self.active_page].tockle(color_active)
+            self.buttons[self.active_page].tockle(self._active_color(self.active_page))
         else:
             self.active_page = ""
 
