@@ -81,8 +81,9 @@ class Frame:
         Plain buttons (no custom colour) use ``self.color_active`` when active,
         which is the standard LCARS navigation-highlight behaviour.
         """
-        btn_color = self.buttons[button_name].color
-        return btn_color if btn_color != self.color else self.color_active
+        if button_name in self._explicit_colour_buttons:
+            return self.buttons[button_name].color
+        return self.color_active
 
     def frame_click(self, button_name: str = "") -> None:
         """Switch to the named page with visual and audio feedback."""
@@ -167,6 +168,7 @@ class Frame:
         self.lcars = lcars
         self.color = color
         self.color_active = color_active
+        self._explicit_colour_buttons: set[str] = set()
         self.enabled = True
         self._header_label: Optional[Textline] = None
         self._footer_label: Optional[Textline] = None
@@ -356,6 +358,9 @@ class Frame:
         def _btn_color(spec: ButtonSpec) -> str:
             return spec.colour if isinstance(spec, ButtonInfo) and spec.colour is not None else self.color
 
+        def _has_explicit_colour(spec: ButtonSpec) -> bool:
+            return isinstance(spec, ButtonInfo) and spec.colour is not None
+
         # Upper group — start below the top corner block (swish or plain rect)
         pos_y = iy + bh + bs
         for spec in upper:
@@ -366,6 +371,8 @@ class Frame:
                 lcars, QtCore.QRect(btn_x, pos_y, bw, btn_height), display_text, _btn_color(spec),
                 style=btn_style,
             )
+            if _has_explicit_colour(spec):
+                self._explicit_colour_buttons.add(name)
             self.buttons[name].clicked.connect(
                 partial(self.button_callback, button_name=name),
             )
@@ -389,6 +396,8 @@ class Frame:
                 lcars, QtCore.QRect(btn_x, pos_y, bw, btn_height), display_text, _btn_color(spec),
                 style=btn_style,
             )
+            if _has_explicit_colour(spec):
+                self._explicit_colour_buttons.add(name)
             self.buttons[name].clicked.connect(
                 partial(self.button_callback, button_name=name),
             )
