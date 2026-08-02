@@ -7,11 +7,11 @@ interface content display.
 """
 from typing import Any, Callable, Dict, List, Optional
 
-from PyQt5 import QtCore, QtGui, QtSvg, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 from .separator import Separator
 from ..conditions import Conditions
-from .. import config
 from ..orientation import Orientation
+from .bar_label import BarLabel
 from .bracket import Bracket
 from .block import Block
 from .deco import Deco
@@ -57,7 +57,7 @@ class Menue:
     active_page: str
     button_callback: Callable[[str], None]
     _display_rect: QtCore.QRect
-    _footer_title: Optional["Textline"]
+    _footer_title: Optional[BarLabel]
 
     def display_rect(self) -> QtCore.QRect:
         """Return the available content area as a QRect.
@@ -69,6 +69,13 @@ class Menue:
         return self._display_rect
 
     def set_footer_text(self, text: str) -> None:
+        """Set the footer text, resizing the gap in the bottom bar to match.
+
+        Does nothing when the menu was created without ``footer_text``.
+
+        Args:
+            text: New footer text.
+        """
         if self._footer_title is not None:
             self._footer_title.setText(text)
 
@@ -195,10 +202,10 @@ class Menue:
         self.linebot = Block(lcars, QtCore.QRect(lx, bs, lw, int(bh / 2)), Conditions.use)
         self.fill = Block(lcars, QtCore.QRect(rx, pos, bw, int(ry + rh - bh - pos - button_space)), Conditions.use)
 
-        if header_text:
+        if header_text or footer_text is not None:
             self._add_header(lcars, lx, lw, ry, bs, bh, color_use, header_text, footer_text)
 
-    def _add_header(self, lcars: QtWidgets.QWidget, lx: int, lw: int, bar_top_y: int, bar_bot_y: int, bh: int, color: str, text: str, footer_text: Optional[str] = None) -> None:
+    def _add_header(self, lcars: QtWidgets.QWidget, lx: int, lw: int, bar_top_y: int, bar_bot_y: int, bh: int, color: str, text: Optional[str] = None, footer_text: Optional[str] = None) -> None:
         bar_h: int = bh // 2
         bar_right: int = lx + lw
         cap_w: int = bar_h
@@ -212,20 +219,18 @@ class Menue:
         Deco(lcars, QtCore.QRect(bar_right - cap_w, bar_top_y, cap_w, bar_h), color, svg=cap_svg)
         Deco(lcars, QtCore.QRect(bar_right - cap_w, bar_bot_y, cap_w, bar_h), color, svg=cap_svg)
 
-        title_gap: int = 12
-        title_w: int = 72
-        gap_x: int = bar_right - cap_w - title_gap - title_w
-        gap_rect: QtCore.QRect = QtCore.QRect(gap_x, bar_top_y, title_w, bar_h)
-        Block(lcars, gap_rect, "#000000")
-        title = Textline(lcars, gap_rect, color, 18)
-        title.setText(text)
-        title.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter)
+        if text:
+            title_gap: int = 12
+            title_w: int = 72
+            gap_x: int = bar_right - cap_w - title_gap - title_w
+            gap_rect: QtCore.QRect = QtCore.QRect(gap_x, bar_top_y, title_w, bar_h)
+            Block(lcars, gap_rect, "#000000")
+            title = Textline(lcars, gap_rect, color, 18)
+            title.setText(text)
+            title.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter)
 
         if footer_text is not None:
-            footer_w: int = QtGui.QFontMetrics(QtGui.QFont(config.DEFAULT_FONT_NAME, 18)).horizontalAdvance(footer_text) + 16
-            footer_gap_x: int = bar_right - cap_w - title_gap - footer_w
-            footer_rect: QtCore.QRect = QtCore.QRect(footer_gap_x, bar_bot_y, footer_w, bar_h)
-            Block(lcars, footer_rect, "#000000")
-            self._footer_title = Textline(lcars, footer_rect, color, 18)
+            self._footer_title = BarLabel(
+                lcars, bar_right - cap_w, bar_bot_y, bar_h, color, 18,
+            )
             self._footer_title.setText(footer_text)
-            self._footer_title.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter)
