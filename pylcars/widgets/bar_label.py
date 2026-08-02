@@ -26,8 +26,6 @@ class BarLabel(Textline):
     """
     backing: Block
 
-    _GAP: int = 12
-
     def __init__(
         self,
         lcars: QtWidgets.QWidget,
@@ -37,6 +35,9 @@ class BarLabel(Textline):
         color: str,
         font_size: int,
         align_left: bool = False,
+        gap: int = 12,
+        padding_chars: float = 3.0,
+        letter_spacing: Optional[int] = None,
     ) -> None:
         """Initialise a BarLabel.
 
@@ -49,12 +50,20 @@ class BarLabel(Textline):
             color: Text color.
             font_size: Font size in points.
             align_left: Anchor to the left end of the bar instead of the right.
+            gap: Distance between the anchor and the near edge of the gap (px).
+            padding_chars: Total horizontal padding around the text, in
+                multiples of the width of a capital "I".
+            letter_spacing: Absolute letter spacing in px, or None for none.
         """
         self._x_anchor = x_anchor
         self._bar_y = y
         self._bar_t = t
         self._align_left = align_left
+        self._gap = gap
+        self._padding_chars = padding_chars
         self._bar_font = QtGui.QFont(config.DEFAULT_FONT_NAME, font_size)
+        if letter_spacing is not None:
+            self._bar_font.setLetterSpacing(QtGui.QFont.AbsoluteSpacing, letter_spacing)
         fm = QtGui.QFontMetrics(self._bar_font)
         self._bar_fm = fm
         self._widget_h = fm.height()
@@ -92,15 +101,16 @@ class BarLabel(Textline):
             Width in pixels, including the padding either side of the text.
         """
         fm = self._bar_fm
-        return fm.horizontalAdvance(text) + int(3 * fm.tightBoundingRect("I").width())
+        padding = int(self._padding_chars * fm.tightBoundingRect("I").width())
+        return fm.horizontalAdvance(text) + padding
 
     def _relayout(self, text: str) -> None:
         """Reposition and resize the label and its backing block for ``text``."""
         text_w = self.text_width(text)
         text_x = (
-            self._x_anchor + self._GAP
+            self._x_anchor + self._gap
             if self._align_left
-            else self._x_anchor - self._GAP - text_w
+            else self._x_anchor - self._gap - text_w
         )
         self.backing.set_rect(QtCore.QRect(text_x, self._bar_y, text_w, self._bar_t))
         self.set_rect(QtCore.QRect(text_x, self._widget_y, text_w, self._widget_h))

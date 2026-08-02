@@ -3,12 +3,12 @@
 from functools import partial
 from typing import Any, Callable, Dict, List, Optional
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
+from .bar_label import BarLabel
 from .block import Block
 from .bracket import Bracket
 from .deco import Deco
-from .textline import Textline
 from ..conditions import Conditions
 from .. import config
 from .frame import Frame, points_for_height
@@ -53,6 +53,39 @@ class SFrame:
     def display_rect(self) -> QtCore.QRect:
         """Central column between both sidebar positions (safe area at any height)."""
         return self._display_rect
+
+    def set_header_text(self, text: str) -> None:
+        """Set the top bar text, resizing the gap in the bar to match.
+
+        Does nothing when the frame was created without ``header_text``.
+
+        Args:
+            text: New header text.
+        """
+        if self._header_label is not None:
+            self._header_label.setText(text)
+
+    def set_footer_text(self, text: str) -> None:
+        """Set the bottom bar text, resizing the gap in the bar to match.
+
+        Does nothing when the frame was created without ``footer_text``.
+
+        Args:
+            text: New footer text.
+        """
+        if self._footer_label is not None:
+            self._footer_label.setText(text)
+
+    def set_title_text(self, text: str) -> None:
+        """Set the mid-bar title, resizing the gap in the bar to match.
+
+        Does nothing when the frame was created without ``title``.
+
+        Args:
+            text: New mid-bar title.
+        """
+        if self._title_label is not None:
+            self._title_label.setText(text)
 
     def upper_blend_in(self, page: str) -> None:
         for widget in self.upper_pages[page].values():
@@ -155,6 +188,9 @@ class SFrame:
         self.color_active = color_active
         self.enabled = True
         self._chrome: list = []
+        self._header_label: Optional[BarLabel] = None
+        self._footer_label: Optional[BarLabel] = None
+        self._title_label: Optional[BarLabel] = None
 
         t = thin_thickness
         T = thick_thickness
@@ -206,20 +242,12 @@ class SFrame:
         self._chrome.append(Block(lcars, QtCore.QRect(mb_x, mid_y, mb_w, t), color))
         if title:
             font_size = points_for_height(config.DEFAULT_FONT_NAME, t)
-            _font = QtGui.QFont(config.DEFAULT_FONT_NAME, font_size)
-            _font.setLetterSpacing(QtGui.QFont.AbsoluteSpacing, 1)
-            fm = QtGui.QFontMetrics(_font)
-            text_w = fm.horizontalAdvance(title) + int(2 * fm.tightBoundingRect("I").width())
-            text_x = mb_x + mb_w - text_w
-            Block(lcars, QtCore.QRect(text_x, mid_y, text_w, t), "#000000")
-            widget_h = fm.height()
-            widget_y = mid_y + t // 2 - fm.ascent() + fm.capHeight() // 2
-            lbl = Textline(lcars, QtCore.QRect(text_x, widget_y, text_w, widget_h), color, font_size)
-            lbl.setStyleSheet(f"background: transparent; color: {color}; border: none;")
-            lbl.setText(title)
-            lbl.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter)
-            Frame._unbold(lbl)
-            self._chrome.append(lbl)
+            self._title_label = BarLabel(
+                lcars, mb_x + mb_w, mid_y, t, color, font_size,
+                gap=0, padding_chars=2, letter_spacing=1,
+            )
+            self._title_label.setText(title)
+            self._chrome.append(self._title_label)
 
         # ── Optional top bar ──────────────────────────────────────────────
         if has_top:
@@ -232,9 +260,10 @@ class SFrame:
             self._chrome.append(Frame._make_cap(lcars, cap_x, iy, t, color, side=cap_side))
             if header_text:
                 anchor = tb_x if cap_side == 'left' else tb_x + tb_w
-                self._chrome.append(Frame._add_text(
+                self._header_label = Frame._add_text(
                     lcars, anchor, iy, t, color, header_text, align_left=(cap_side == 'left'),
-                ))
+                )
+                self._chrome.append(self._header_label)
 
         # ── Optional bottom bar ───────────────────────────────────────────
         if has_bottom:
@@ -248,10 +277,11 @@ class SFrame:
             self._chrome.append(Frame._make_cap(lcars, cap_x, bot_bar_y, t, color, side=cap_side))
             if footer_text:
                 anchor = bb_x + bb_w if cap_side == 'right' else bb_x
-                self._chrome.append(Frame._add_text(
+                self._footer_label = Frame._add_text(
                     lcars, anchor, bot_bar_y, t, color, footer_text,
                     align_left=(cap_side == 'left'),
-                ))
+                )
+                self._chrome.append(self._footer_label)
 
         # ── Buttons and pages ─────────────────────────────────────────────
         self.buttons = {}
