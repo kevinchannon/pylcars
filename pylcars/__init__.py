@@ -32,6 +32,7 @@ from .widgets.updown import Updown
 from .widgets.layout_grid import LayoutGrid
 from .widgets.slider import Slider
 from .widgets.textline import Textline
+from .widgets.bar_label import BarLabel
 from .widgets.plot import Plot
 from .widgets.linear_gauge import LinearGauge, GaugeConfig, ZoneInterval
 from .widgets.split_pill import SplitPill, SplitPillStyles
@@ -70,6 +71,7 @@ __all__ = [
     "LayoutGrid",
     "Slider",
     "Textline",
+    "BarLabel",
     "Plot",
     "LinearGauge",
     "GaugeConfig",

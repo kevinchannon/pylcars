@@ -45,6 +45,16 @@ class Deco(Widgets, QtWidgets.QLabel):
         self.setStyleSheet(self.style)
         self.show()
 
+    def set_rect(self, rect: QtCore.QRect) -> None:
+        """Move and resize the widget, re-rendering its SVG at the new size.
+
+        Args:
+            rect: New geometry rectangle for the widget.
+        """
+        self.rect = rect
+        self.setGeometry(rect)
+        self.change_svg(self.svg)
+
     def change_svg(self, svg: Optional[str]) -> None:
         """Change the SVG template and render the widget.
 

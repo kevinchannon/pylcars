@@ -5,11 +5,11 @@ from typing import Any, Callable, Dict, List, Optional, Set, Union
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+from .bar_label import BarLabel
 from .block import Block
 from .bracket import Bracket
 from .deco import Deco
 from .separator import Separator
-from .textline import Textline
 from ..conditions import Conditions
 from .. import config
 from ..frame_border import FrameBorder
@@ -170,8 +170,8 @@ class Frame:
         self.color_active = color_active
         self._explicit_colour_buttons: set[str] = set()
         self.enabled = True
-        self._header_label: Optional[Textline] = None
-        self._footer_label: Optional[Textline] = None
+        self._header_label: Optional[BarLabel] = None
+        self._footer_label: Optional[BarLabel] = None
         self._chrome: list = []
 
         has_top = FrameBorder.TOP in borders
@@ -492,24 +492,11 @@ class Frame:
         color: str,
         text: str,
         align_left: bool = False,
-    ) -> Textline:
+    ) -> BarLabel:
         """Text label cut into a bar, anchored near the left or right end."""
         font_size = points_for_height(config.DEFAULT_FONT_NAME, t)
-        gap = 12
-        _font = QtGui.QFont(config.DEFAULT_FONT_NAME, font_size)
-        fm = QtGui.QFontMetrics(_font)
-        font_height = fm.capHeight()
-        text_w = fm.horizontalAdvance(text) + int(3 * fm.tightBoundingRect("I").width())
-        text_x = (x_anchor + gap) if align_left else (x_anchor - gap - text_w)
-        Block(lcars, QtCore.QRect(text_x, y, text_w, t), "#000000")
-        widget_h = fm.height()
-        widget_y = y + t // 2 - fm.ascent() + fm.capHeight() // 2
-        label = Textline(lcars, QtCore.QRect(text_x, widget_y, text_w, widget_h), color, font_size)
-        label.setStyleSheet(f"background: transparent; color: {color}; border: none;")
-        label.setFont(_font)
+        label = BarLabel(lcars, x_anchor, y, t, color, font_size, align_left=align_left)
         label.setText(text)
-        label.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter)
-        Frame._unbold(label)
         return label
 
     @staticmethod
