@@ -16,18 +16,6 @@ class Colors(Enumeration):  # type: ignore
 
     A complete set of colors used in the LCARS design system. Each color is named
     according to its characteristic appearance and is defined as a hexadecimal color value.
-
-    Attributes:
-        orange: Primary orange color (#f90).
-        flieder: Purple/lilac color (#c9c).
-        blaugrau: Blue-gray color (#99c).
-        rostbraun: Brown/rust color (#c66).
-        beige: Light beige color (#fc9).
-        leuchtblau: Bright blue color (#99f).
-        apricot: Apricot color (#f96).
-        pink: Pink color (#c69).
-        hellorange: Light orange color (#fc4).
-        rot: Red color (#c00).
     """
     orange: str = '#f90'
     flieder: str = '#c9c'
@@ -40,3 +28,8 @@ class Colors(Enumeration):  # type: ignore
     hellorange: str = '#fc4'
     rot: str = '#c00'
     yellow: str = '#dfce86'
+    black: str = "#000"  # the LCARS background
+    white: str = "#fff"  # brightest text
+    silber: str = "#f0f0f0"  # body text; off-white
+    grau: str = "#666"  # de-emphasised text
+    anthrazit: str = "#3a3a3a"  # hairlines and rules
