@@ -5,6 +5,52 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+Brings `SFrame` up to parity with `Frame`: anything you could do to a `Frame`'s
+sidebar buttons you can now do to an `SFrame`'s, and both classes share one
+implementation of what a button is, so the two can't quietly drift apart again.
+
+### Added
+
+- `ButtonInfo.text` — display label decoupled from the button's key, so a
+  button's name can stay stable while its label changes, and two buttons in
+  different groups can carry the same label.
+- `button_texts` and `button_font_size` on `SFrame`, matching `Frame`.
+- `set_button_text(name, text)` and `button_text(name)` on both classes.
+  Relabelling re-derives the button's height and re-flows the rest of its
+  column, which reaching into `frame.buttons[name].setText(...)` did not.
+- `play_sound` parameter on both classes, so a frame can be given a sound
+  handler instead of having to be parented to an `Lcars` window to acquire one.
+  Frames parented to an `Lcars` window still get sound with no code change.
+- Multi-line button labels and the 30px minimum button height now apply in
+  `SFrame` as they always have in `Frame`.
+- `bar_thickness()`, the `thin_thickness` → bar height derivation both frame
+  classes now use, exported from the package.
+
+### Changed
+
+- **Breaking:** the first parameter of `Frame` and `SFrame` is renamed from
+  `lcars` to `parent`, and the stored attribute from `.lcars` to `.parent`.
+  Positional callers are unaffected. Any `QWidget` is a valid parent — sound is
+  no longer the reason to parent a frame to an `Lcars` window.
+- **Breaking:** duplicate button names now raise `ValueError` at construction.
+  Previously the later button silently replaced the earlier one in `buttons`
+  while both stayed on screen, leaving one widget unreachable and firing its
+  callback under the wrong key.
+- `SFrame` derives its bar thickness from `thin_thickness` the way `Frame`
+  does, via the label font's cap height. Existing `SFrame` layouts can shift by
+  a pixel or so, font-dependent; the two classes now line up when given the
+  same `thin_thickness`.
+- Button placement for both classes lives in `pylcars/widgets/frame_support.py`.
+  `Frame._place_buttons` and `SFrame._place_btns` are gone.
+
+### Fixed
+
+- A button created with an explicit `ButtonInfo.colour` no longer loses that
+  colour when selected in an `SFrame`; it keeps it, as it already did in
+  `Frame`.
+
 ## [0.1.0] - 2025-03-28
 
 ### Added

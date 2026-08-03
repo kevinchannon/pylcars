@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """S-Frame: split-sidebar LCARS frame widget."""
-from functools import partial
 from typing import Any, Callable, Dict, List, Optional
 
 from PyQt5 import QtCore, QtWidgets
@@ -11,18 +10,27 @@ from .bracket import Bracket
 from .deco import Deco
 from ..conditions import Conditions
 from .. import config
-from .frame import Frame, points_for_height
-from ..button_info import ButtonInfo, ButtonSpec, _btn_name
+from .frame import Frame, bar_thickness, points_for_height
+from .frame_support import (
+    MIN_BUTTON_HEIGHT,
+    SidebarButtons,
+    check_button_names,
+    resolve_play_sound,
+)
+from ..button_info import ButtonSpec, _btn_name
 
 
-class SFrame:
+class SFrame(SidebarButtons):
     """LCARS S-Style (split-sidebar) frame.
 
     One sidebar occupies the upper half, the other the lower half, connected
     by a thin horizontal mid-bar. Optional top and bottom bars can cap the frame.
 
     The two halves are independently addressable: upper buttons switch pages in
-    ``upper_pages`` and lower buttons switch pages in ``lower_pages``.
+    ``upper_pages`` and lower buttons switch pages in ``lower_pages``.  Both
+    halves key into one ``buttons`` dict, so button names must be unique across
+    the frame; give two buttons the same label with ``ButtonInfo.text`` rather
+    than the same name.
 
     ``mirror=False``: right sidebar on top, left on bottom.
     ``mirror=True``:  left sidebar on top, right on bottom.
@@ -104,23 +112,25 @@ class SFrame:
             widget.hide()
 
     def upper_frame_click(self, button_name: str = "") -> None:
+        """Switch the upper half to the named page, with visual and audio feedback."""
         if not self.enabled or self.upper_active_page == button_name:
             return
-        self.lcars.play_sound()
+        self._play_sound()
         self.upper_blend_out(self.upper_active_page)
         self.buttons[self.upper_active_page].tockle()
         self.upper_active_page = button_name
-        self.buttons[self.upper_active_page].tockle(self.color_active)
+        self.buttons[self.upper_active_page].tockle(self._active_color(self.upper_active_page))
         self.upper_blend_in(self.upper_active_page)
 
     def lower_frame_click(self, button_name: str = "") -> None:
+        """Switch the lower half to the named page, with visual and audio feedback."""
         if not self.enabled or self.lower_active_page == button_name:
             return
-        self.lcars.play_sound()
+        self._play_sound()
         self.lower_blend_out(self.lower_active_page)
         self.buttons[self.lower_active_page].tockle()
         self.lower_active_page = button_name
-        self.buttons[self.lower_active_page].tockle(self.color_active)
+        self.buttons[self.lower_active_page].tockle(self._active_color(self.lower_active_page))
         self.lower_blend_in(self.lower_active_page)
 
     def paint_back(self, color: str) -> None:
@@ -136,7 +146,7 @@ class SFrame:
 
     def __init__(
         self,
-        lcars: QtWidgets.QWidget,
+        parent: QtWidgets.QWidget,
         rect: QtCore.QRect,
         mirror: bool = False,
         upper_buttons: Optional[List[ButtonSpec]] = None,
@@ -155,11 +165,16 @@ class SFrame:
         color_active: str = Conditions.active,
         upper_button_callback: Optional[Callable[[str], None]] = None,
         lower_button_callback: Optional[Callable[[str], None]] = None,
+        button_texts: Optional[Dict[str, str]] = None,
+        button_font_size: Optional[int] = None,
+        play_sound: Optional[Callable[[], None]] = None,
     ) -> None:
         """Initialise an SFrame.
 
         Args:
-            lcars: Parent LCARS window.
+            parent: Widget the frame is built on.  Any QWidget will do — an
+                Lcars window, or a plain container so the frame can be shown,
+                hidden and moved as one object.
             rect: Bounding rectangle for the entire frame.
             mirror: False = right sidebar top / left sidebar bottom.
                     True  = left sidebar top / right sidebar bottom.
@@ -179,20 +194,37 @@ class SFrame:
             color_active: Color for the active button.
             upper_button_callback: Override for the upper half page-switch handler.
             lower_button_callback: Override for the lower half page-switch handler.
+            button_texts: Display labels keyed by button name, for buttons whose
+                label should differ from their key.  ``ButtonInfo.text`` wins
+                where both are given.
+            button_font_size: Point size for sidebar button text. When ``None``
+                (default) the Bracket default font size is used.
+            play_sound: Called on each page switch.  When ``None`` (default) the
+                parent's ``play_sound`` is used if it has one, and the frame is
+                silent otherwise.
+
+        Raises:
+            ValueError: If a button name is used more than once.  Both halves
+                key into the same ``buttons`` dict, so names must be unique
+                across the frame; use ``ButtonInfo.text`` to give two buttons
+                in different halves the same label.
         """
         upper_buttons = upper_buttons or []
         lower_buttons = lower_buttons or []
 
-        self.lcars = lcars
+        check_button_names(upper_buttons, lower_buttons)
+
+        self.parent = parent
         self.color = color
         self.color_active = color_active
+        self._play_sound = resolve_play_sound(parent, play_sound)
         self.enabled = True
         self._chrome: list = []
         self._header_label: Optional[BarLabel] = None
         self._footer_label: Optional[BarLabel] = None
         self._title_label: Optional[BarLabel] = None
 
-        t = thin_thickness
+        t = bar_thickness(thin_thickness)
         T = thick_thickness
         bh = 2 * t
         bw = int(T * 2 / 3)
@@ -217,33 +249,33 @@ class SFrame:
         # ── Upper sidebar ─────────────────────────────────────────────────
         if has_top:
             svg = Frame._corner_svg(T, bh, t, bar, top=True, left=(upper_side == 'left'))
-            self._chrome.append(Deco(lcars, QtCore.QRect(upper_sx, iy, T, bh), color, svg=svg))
+            self._chrome.append(Deco(parent, QtCore.QRect(upper_sx, iy, T, bh), color, svg=svg))
         else:
-            self._chrome.append(Block(lcars, QtCore.QRect(upper_bx, iy, bw, bh), color))
+            self._chrome.append(Block(parent, QtCore.QRect(upper_bx, iy, bw, bh), color))
 
         # Bottom of upper sidebar → mid junction (bar at SVG y=t, place at mid_y - t)
         svg = Frame._corner_svg(T, bh, t, bar, top=False, left=(upper_side == 'left'))
-        self._chrome.append(Deco(lcars, QtCore.QRect(upper_sx, mid_y - t, T, bh), color, svg=svg))
+        self._chrome.append(Deco(parent, QtCore.QRect(upper_sx, mid_y - t, T, bh), color, svg=svg))
 
         # ── Lower sidebar ─────────────────────────────────────────────────
         # Top of lower sidebar → mid junction (bar at SVG y=0, place at mid_y)
         svg = Frame._corner_svg(T, bh, t, bar, top=True, left=(lower_side == 'left'))
-        self._chrome.append(Deco(lcars, QtCore.QRect(lower_sx, mid_y, T, bh), color, svg=svg))
+        self._chrome.append(Deco(parent, QtCore.QRect(lower_sx, mid_y, T, bh), color, svg=svg))
 
         if has_bottom:
             svg = Frame._corner_svg(T, bh, t, bar, top=False, left=(lower_side == 'left'))
-            self._chrome.append(Deco(lcars, QtCore.QRect(lower_sx, iy + ih - bh, T, bh), color, svg=svg))
+            self._chrome.append(Deco(parent, QtCore.QRect(lower_sx, iy + ih - bh, T, bh), color, svg=svg))
         else:
-            self._chrome.append(Block(lcars, QtCore.QRect(lower_bx, iy + ih - bh, bw, bh), color))
+            self._chrome.append(Block(parent, QtCore.QRect(lower_bx, iy + ih - bh, bw, bh), color))
 
         # ── Mid-bar ───────────────────────────────────────────────────────
         mb_x = ix + T + bs
         mb_w = iw - 2 * T - 2 * bs
-        self._chrome.append(Block(lcars, QtCore.QRect(mb_x, mid_y, mb_w, t), color))
+        self._chrome.append(Block(parent, QtCore.QRect(mb_x, mid_y, mb_w, t), color))
         if title:
             font_size = points_for_height(config.DEFAULT_FONT_NAME, t)
             self._title_label = BarLabel(
-                lcars, mb_x + mb_w, mid_y, t, color, font_size,
+                parent, mb_x + mb_w, mid_y, t, color, font_size,
                 gap=0, padding_chars=2, letter_spacing=1,
             )
             self._title_label.setText(title)
@@ -256,12 +288,12 @@ class SFrame:
             else:
                 tb_x, tb_w = ix + T + bs, iw - T - bs
                 cap_x, cap_side = tb_x + tb_w - t, 'right'
-            self._chrome.append(Block(lcars, QtCore.QRect(tb_x, iy, tb_w, t), color))
-            self._chrome.append(Frame._make_cap(lcars, cap_x, iy, t, color, side=cap_side))
+            self._chrome.append(Block(parent, QtCore.QRect(tb_x, iy, tb_w, t), color))
+            self._chrome.append(Frame._make_cap(parent, cap_x, iy, t, color, side=cap_side))
             if header_text:
                 anchor = tb_x if cap_side == 'left' else tb_x + tb_w
                 self._header_label = Frame._add_text(
-                    lcars, anchor, iy, t, color, header_text, align_left=(cap_side == 'left'),
+                    parent, anchor, iy, t, color, header_text, align_left=(cap_side == 'left'),
                 )
                 self._chrome.append(self._header_label)
 
@@ -273,18 +305,22 @@ class SFrame:
                 cap_x, cap_side = bb_x + bb_w - t, 'right'
             else:
                 bb_x, bb_w, cap_x, cap_side = ix, iw - T - bs, ix, 'left'
-            self._chrome.append(Block(lcars, QtCore.QRect(bb_x, bot_bar_y, bb_w, t), color))
-            self._chrome.append(Frame._make_cap(lcars, cap_x, bot_bar_y, t, color, side=cap_side))
+            self._chrome.append(Block(parent, QtCore.QRect(bb_x, bot_bar_y, bb_w, t), color))
+            self._chrome.append(Frame._make_cap(parent, cap_x, bot_bar_y, t, color, side=cap_side))
             if footer_text:
                 anchor = bb_x + bb_w if cap_side == 'right' else bb_x
                 self._footer_label = Frame._add_text(
-                    lcars, anchor, bot_bar_y, t, color, footer_text,
+                    parent, anchor, bot_bar_y, t, color, footer_text,
                     align_left=(cap_side == 'left'),
                 )
                 self._chrome.append(self._footer_label)
 
         # ── Buttons and pages ─────────────────────────────────────────────
-        self.buttons = {}
+        self._init_buttons(
+            button_texts=button_texts,
+            button_font_size=button_font_size,
+            min_button_height=max(MIN_BUTTON_HEIGHT, bh),
+        )
         self.upper_pages: Dict[str, Dict[str, Any]] = {}
         self.lower_pages: Dict[str, Dict[str, Any]] = {}
         self.upper_fields = [_btn_name(s) for s in upper_buttons]
@@ -294,22 +330,30 @@ class SFrame:
         upper_cb = upper_button_callback or self.upper_frame_click
         lower_cb = lower_button_callback or self.lower_frame_click
 
-        self._place_btns(
-            lcars, upper_bx, iy + bh + bs, mid_y - t,
-            bh, bw, bs, upper_buttons, self.upper_pages, upper_cb, upper_side,
+        # One column per half: a single group running top-down, with the
+        # remainder of the half filled by a Block.
+        self._add_button_column(
+            parent, self._chrome,
+            x=upper_bx, w=bw,
+            top_y=iy + bh + bs, bot_y=mid_y - t, spacing=bs,
+            callback=upper_cb, pages=self.upper_pages,
+            top_group=upper_buttons, side=upper_side,
         )
-        self._place_btns(
-            lcars, lower_bx, mid_y + bh + bs, iy + ih - bh,
-            bh, bw, bs, lower_buttons, self.lower_pages, lower_cb, lower_side,
+        self._add_button_column(
+            parent, self._chrome,
+            x=lower_bx, w=bw,
+            top_y=mid_y + bh + bs, bot_y=iy + ih - bh, spacing=bs,
+            callback=lower_cb, pages=self.lower_pages,
+            top_group=lower_buttons, side=lower_side,
         )
 
         self.upper_active_page = self.upper_fields[0] if self.upper_fields else ""
         self.lower_active_page = self.lower_fields[0] if self.lower_fields else ""
 
         if self.upper_active_page:
-            self.buttons[self.upper_active_page].tockle(color_active)
+            self.buttons[self.upper_active_page].tockle(self._active_color(self.upper_active_page))
         if self.lower_active_page:
-            self.buttons[self.lower_active_page].tockle(color_active)
+            self.buttons[self.lower_active_page].tockle(self._active_color(self.lower_active_page))
 
         # ── Display rects ─────────────────────────────────────────────────
         # Vertical bounds: content spans between corner pieces (always bh=2t tall).
@@ -333,41 +377,3 @@ class SFrame:
         self._display_rect = QtCore.QRect(
             ix + T + bs, udr_y, iw - 2 * T - 2 * bs, ldr_bot - udr_y,
         )
-
-
-    # ── Private helpers ───────────────────────────────────────────────────
-
-    def _place_btns(
-        self,
-        lcars: QtWidgets.QWidget,
-        btn_x: int,
-        top_y: int,
-        bot_y: int,
-        bh: int,
-        bw: int,
-        bs: int,
-        names: List[ButtonSpec],
-        pages: Dict[str, Dict[str, Any]],
-        callback: Callable,
-        side: str = 'left',
-    ) -> None:
-        """Place a button group from top_y downward; fill remaining space."""
-        align_left = side == 'right'
-        btn_style = Bracket.default_style.replace(
-            "Text-align: top right;", "Text-align: top left;" if align_left else "Text-align: top right;"
-        )
-        pos_y = top_y
-        for spec in names:
-            name = _btn_name(spec)
-            btn_color = spec.colour if isinstance(spec, ButtonInfo) and spec.colour is not None else self.color
-            btn_h = spec.height if isinstance(spec, ButtonInfo) and spec.height is not None else bh
-            self.buttons[name] = Bracket(
-                lcars, QtCore.QRect(btn_x, pos_y, bw, btn_h), name, btn_color, style=btn_style,
-            )
-            self.buttons[name].clicked.connect(partial(callback, button_name=name))
-            Frame._unbold(self.buttons[name])
-            pages[name] = {}
-            pos_y += btn_h + bs
-        fill_h = bot_y - pos_y
-        if fill_h > 0:
-            self._chrome.append(Block(lcars, QtCore.QRect(btn_x, pos_y, bw, fill_h), self.color))

@@ -24,7 +24,7 @@ from .widgets.block import Block
 from .widgets.separator import Separator
 from .widgets.bracket import Bracket
 from .widgets.menue import Menue
-from .widgets.frame import Frame, points_for_height
+from .widgets.frame import Frame, bar_thickness, points_for_height
 from .widgets.s_frame import SFrame
 from .button_info import ButtonInfo
 from .frame_border import FrameBorder
@@ -64,6 +64,7 @@ __all__ = [
     "Menue",
     "Frame",
     "points_for_height",
+    "bar_thickness",
     "SFrame",
     "ButtonInfo",
     "FrameBorder",

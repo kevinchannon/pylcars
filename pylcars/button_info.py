@@ -9,13 +9,18 @@ class ButtonInfo:
     """Customisation for a single sidebar button.
 
     Attributes:
-        name:   Button key and default display text.
+        name:   Button key.  Also the display text unless ``text`` is given.
         colour: Override colour for this button (uses frame color when None).
         height: Override height in pixels (uses default button height when None).
+        text:   Display label, decoupling what is shown from the key used in
+            ``Frame.buttons`` / ``SFrame.buttons`` and in button callbacks.
+            Takes precedence over the frame's ``button_texts`` mapping.
+            ``\\n`` starts a new line, and the button grows to fit.
     """
     name: str
     colour: Optional[str] = None
     height: Optional[int] = None
+    text: Optional[str] = None
 
 
 ButtonSpec = Union[str, ButtonInfo]
